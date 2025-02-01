@@ -16,7 +16,113 @@ document.addEventListener('DOMContentLoaded', function () {
   let expensesChart;
   let categoryExpensesChart;
 
-  // Helper to get current date/time as YYYYMMDD_HHMMSS
+  // Sample data (with anonymized names)
+  const sampleData = {
+    "bills": [
+      { "name": "Housing Payment 1", "date": 1, "amount": 2420, "category": "Housing" },
+      { "name": "Childcare Payment 1", "date": 1, "amount": 799.2, "category": "Childcare" },
+      { "name": "Credit Card Payment 1", "date": 6, "amount": 250, "category": "Debt Payments" },
+      { "name": "Insurance Payment 1", "date": 7, "amount": 259.9, "category": "Insurance" },
+      { "name": "Transportation Payment 1", "date": 7, "amount": 383.94, "category": "Transportation" },
+      { "name": "Credit Card Payment 2", "date": 8, "amount": 430.57, "category": "Debt Payments" },
+      { "name": "Utility Payment 1", "date": 5, "amount": 80, "category": "Utilities" },
+      { "name": "Credit Card Payment 3", "date": 2, "amount": 96, "category": "Debt Payments" },
+      { "name": "Subscription Payment 1", "date": 10, "amount": 16, "category": "Subscriptions/Memberships" },
+      { "name": "Debt Payment 1", "date": 13, "amount": 92, "category": "Debt Payments" },
+      { "name": "Utility Payment 2", "date": 15, "amount": 400, "category": "Utilities" },
+      { "name": "Loan Payment 1", "date": 15, "amount": 80, "category": "Debt Payments" },
+      { "name": "Credit Card Payment 4", "date": 18, "amount": 330, "category": "Debt Payments" },
+      { "name": "Credit Card Payment 5", "date": 20, "amount": 52, "category": "Debt Payments" },
+      { "name": "Credit Card Payment 6", "date": 21, "amount": 439, "category": "Debt Payments" },
+      { "name": "Utility Payment 3", "date": 22, "amount": 170, "category": "Utilities" },
+      { "name": "Subscription Payment 2", "date": 23, "amount": 21.26, "category": "Subscriptions/Memberships" },
+      { "name": "Utility Payment 4", "date": 24, "amount": 201.63, "category": "Utilities" },
+      { "name": "Utility Payment 5", "date": 26, "amount": 100, "category": "Utilities" },
+      { "name": "Transportation Payment 2", "date": 20, "amount": 345.4, "category": "Transportation" },
+      { "name": "Misc Payment 1", "date": 28, "amount": 46, "category": "Misc/Other" },
+      { "name": "Housing Payment 2", "date": 30, "amount": 174, "category": "Housing" },
+      { "name": "Student Loan Payment 1", "date": 5, "amount": 376, "category": "Student Loans" }
+    ],
+    "incomeEntries": [
+      { "name": "Income Payment 1", "amount": 1700, "frequency": "Bi-weekly", "startDate": "2024-11-20" },
+      { "name": "Income Payment 2", "amount": 2133.25, "frequency": "Bi-weekly", "startDate": "2024-12-11" }
+    ],
+    "adhocExpenses": [],
+    "accountBalance": 3435.95,
+    "accountName": "Sample Checking",
+    "startDate": "2025-01-30T07:00:00.000Z",
+    "projectionLength": 10,
+    "categories": [
+      "Charity/Donations",
+      "Childcare",
+      "Debt Payments",
+      "Dining Out/Takeout",
+      "Education",
+      "Entertainment",
+      "Healthcare",
+      "Hobbies/Recreation",
+      "Housing",
+      "Insurance",
+      "Personal Care",
+      "Pets",
+      "Savings/Investments",
+      "Subscriptions/Memberships",
+      "Transportation",
+      "Travel",
+      "Utilities",
+      "Misc/Other",
+      "Student Loans"
+    ],
+    "runningBudgetAdjustments": [
+      { "date": "2024-11-28", "amount": -164, "event": "Housing Payment 2" },
+      { "date": "2024-12-01", "amount": -799.2, "event": "Childcare Payment 1" },
+      { "date": "2024-12-11", "amount": -528.73, "event": "Income Payment 2 + Housing Payment 1" },
+      { "date": "2024-12-15", "amount": -109.65, "event": "Utility Payment 2" },
+      { "date": "2025-01-05", "amount": 0, "event": "Student Loan Payment 1 (Deferred)" },
+      { "date": "2025-01-10", "amount": -2436, "event": "Subscription Payment 1 + Housing Payment 1" },
+      { "date": "2025-01-11", "amount": 0, "event": "" },
+      { "date": "2025-01-01", "amount": 0, "event": "Housing Payment 1 (Deferred) + Childcare Payment 1 (Level)" },
+      { "date": "2024-12-30", "amount": 0, "event": "---" },
+      { "date": "2024-12-28", "amount": -174, "event": "Housing Payment 2" },
+      { "date": "2025-01-15", "amount": -194.87, "event": "Utility Payment 2 + Loan Payment 1 + Income Payment 1" },
+      { "date": "2025-01-04", "amount": -799.2, "event": "Childcare Payment 1" },
+      { "date": "2025-01-09", "amount": -50, "event": "Transportation Payment 2 (Gas)" },
+      { "date": "2025-01-07", "amount": -743.84, "event": "Insurance Payment 1 + Transportation Payment 1 + Income Payment 1 Adjustment" },
+      { "date": "2025-01-12", "amount": -100, "event": "Dining Payment 1" },
+      { "date": "2025-01-17", "amount": -114.87, "event": "Utility Payment 2" },
+      { "date": "2025-02-01", "amount": -799.2, "event": "Childcare Payment 1" },
+      { "date": "2025-02-09", "amount": -2420, "event": "Housing Payment 1" },
+      { "date": "2025-03-01", "amount": -799.2, "event": "Housing Payment 1 (Deferred) + Childcare Payment 1" },
+      { "date": "2025-03-09", "amount": -2420, "event": "Housing Payment 1" },
+      { "date": "2025-01-28", "amount": 0, "event": "---" },
+      { "date": "2025-02-15", "amount": -155.76, "event": "Utility Payment 2 (Partial) + Loan Payment 1" },
+      { "date": "2025-01-29", "amount": 0, "event": "---" }
+    ]
+  };
+
+  // =======================
+  // Load Sample Data Function
+  // =======================
+  function loadSampleData() {
+    bills = sampleData.bills;
+    incomeEntries = sampleData.incomeEntries;
+    adhocExpenses = sampleData.adhocExpenses;
+    accountBalance = sampleData.accountBalance;
+    accountName = sampleData.accountName;
+    startDate = new Date(sampleData.startDate);
+    projectionLength = sampleData.projectionLength;
+    categories = sampleData.categories;
+    runningBudgetAdjustments = sampleData.runningBudgetAdjustments;
+    saveData();
+    populateCategories();
+    initializeStartDate();
+    updateDisplay();
+    alert("Sample data loaded.");
+  }
+
+  // =======================
+  // Helper Functions & Data Persistence
+  // =======================
   function getCurrentDateTimeString() {
     const now = new Date();
     const year = now.getFullYear();
@@ -28,9 +134,6 @@ document.addEventListener('DOMContentLoaded', function () {
     return `${year}${month}${day}_${hours}${minutes}${seconds}`;
   }
 
-  // =======================
-  // Utility Functions
-  // =======================
   function parseMathExpression(rawValue) {
     let cleaned = rawValue.replace(/\$/g, '');
     cleaned = cleaned.replace(/[^0-9+\-*\\/().]/g, '');
@@ -115,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Load data from localStorage
+  // Load any saved data
   loadData();
   initializeStartDate();
   populateCategories();
@@ -1123,4 +1226,12 @@ document.addEventListener('DOMContentLoaded', function () {
       projectionLengthInput.value = projectionLength;
     }
   }
+
+  // =======================
+  // Load Sample Data (Event Listener)
+  // =======================
+  document.getElementById('load-sample-btn').addEventListener('click', function (e) {
+    e.preventDefault();
+    loadSampleData();
+  });
 });
