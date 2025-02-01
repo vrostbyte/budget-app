@@ -1,63 +1,100 @@
 /* General reset & base styling */
+* {
+  box-sizing: border-box;
+}
 body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
+  background-color: #fff;
+  color: #343a40;
 }
 
 /* Header and Footer */
 header,
 footer {
   background-color: #f8f9fa;
-  padding: 0 1em;
-  position: relative;
+  padding: 0.5em 1em;
   display: flex;
   align-items: center;
-  justify-content: space-between; /* Keep nav and h1 in the same row */
+  justify-content: space-between;
 }
-
-header h1 {
+header h1,
+footer p {
   margin: 0;
 }
 
-h1,
-h2,
-h3 {
+/* Navigation Menu Styles */
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+nav li {
+  position: relative;
+}
+nav li a.dropbtn {
+  display: block;
   color: #343a40;
+  padding: 8px 16px;
+  text-decoration: none;
+}
+nav li a.dropbtn:hover,
+nav li a.dropbtn:focus,
+.dropdown:hover .dropbtn {
+  background-color: #ddd;
+}
+nav li.dropdown {
+  display: inline-block;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f8f9fa;
+  min-width: 160px;
+  z-index: 1;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+.dropdown-content a {
+  color: #343a40;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+.menu-icon {
+  font-size: 20px;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
+/* Layout Containers */
 .container {
-  display: flex;
-  flex-wrap: wrap;
   padding: 1em;
 }
-
 .row {
   display: flex;
   flex-wrap: wrap;
-  width: 100%;
 }
-
 .col {
   flex: 1;
-  min-width: 300px;
+  min-width: 280px;
   padding: 1em;
-  box-sizing: border-box;
 }
 
-/* Collapsible card structure */
+/* Collapsible Cards */
 .collapsible-card {
-  border: 1px solid lightgrey;
+  border: 1px solid #ddd;
   background-color: #f9f9f9;
-  margin-bottom: 2em;
+  margin-bottom: 1.5em;
   border-radius: 8px;
   overflow: hidden;
 }
-
-.collapsible-card.expanded {
-  /* default expanded */
-}
-
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -66,34 +103,28 @@ h3 {
   background-color: #f2f2f2;
   cursor: pointer;
 }
-
 .card-header h2 {
   margin: 0;
+  font-size: 1.1em;
 }
-
 .card-toggle {
-  margin-left: 8px;
   transition: transform 0.3s ease;
+  font-size: 1.2em;
 }
-
 .card-body {
   padding: 1em;
-  display: block; /* default shown */
+  display: block;
 }
-
 .card-body.collapsed {
   display: none;
 }
-
 .card-form {
   display: flex;
   flex-direction: column;
 }
-
 .card-form label {
   margin-top: 0.5em;
 }
-
 .card-form input,
 .card-form select,
 .card-form button {
@@ -101,40 +132,69 @@ h3 {
   padding: 0.5em;
   font-size: 1em;
 }
-
 .card-form button {
   background-color: #007bff;
-  color: white;
+  color: #fff;
   border: none;
   cursor: pointer;
   margin-top: 1em;
+  border-radius: 4px;
 }
-
 .card-form button:hover {
   background-color: #0056b3;
 }
 
-.actions-cell button {
-  margin-right: 0.5em;
+/* Icon Buttons for Edit/Delete */
+button.icon-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 0.3em;
+  margin: 0 0.2em;
+  color: #007bff;
+}
+button.icon-btn:hover {
+  color: #0056b3;
 }
 
-/* Spacing for charts */
-.bar-chart-container {
-  position: relative;
+/* Table Styles */
+.table-responsive {
   width: 100%;
-  max-width: 800px;
-  height: 400px;
-  margin: 0 auto;
+  overflow-x: auto;
+}
+.table-responsive table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table-responsive th,
+.table-responsive td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+.table-responsive tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+.table-responsive th {
+  background-color: #f2f2f2;
+  color: #333;
 }
 
-/* Reduced spacing between sections */
-.bar-chart-container.reduced-space {
-  margin-bottom: 1em;
+/* Conditional Formatting */
+.positive-amount {
+  color: green;
+}
+.negative-amount {
+  color: red;
+}
+.neutral-amount {
+  color: black;
 }
 
-/* Modal */
+/* Modal Styles */
 .modal {
-  display: none; /* Hidden by default */
+  display: none;
   position: fixed;
   z-index: 1000;
   left: 0;
@@ -144,28 +204,23 @@ h3 {
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.5);
 }
-
 .modal-content {
   background-color: #fefefe;
   margin: 5% auto;
   padding: 2em;
   border: 1px solid #888;
-  width: 80%;
+  width: 90%;
   max-width: 600px;
-  position: relative;
   border-radius: 6px;
+  position: relative;
 }
-
-/* Ensures consistent, cleaner vertical flow in edit modals */
 .modal-form form {
   display: flex;
   flex-direction: column;
 }
-
 .modal-form label {
   margin-top: 1em;
 }
-
 .modal-form input,
 .modal-form select,
 .modal-form button {
@@ -173,7 +228,6 @@ h3 {
   padding: 0.5em;
   width: 100%;
 }
-
 .close-btn {
   color: #aaa;
   position: absolute;
@@ -183,144 +237,45 @@ h3 {
   font-weight: bold;
   cursor: pointer;
 }
-
 .close-btn:hover,
 .close-btn:focus {
-  color: black;
+  color: #000;
 }
-
 #close-modal-btn {
   margin-top: 1em;
   width: auto;
 }
 
-/* Category container with clearer spacing on mobile */
-.category-container {
-  display: block;
-  margin-top: 0.5em;
-}
-
-.category-container select {
-  display: block;
-  width: 100%;
-  margin-top: 0.5em;
-}
-
-.category-container button {
-  display: block;
-  width: 100%;
-  margin-top: 0.5em;
-}
-
-/* Conditional Formatting for Positive and Negative Amounts */
-.positive-amount {
-  color: green;
-}
-
-.negative-amount {
-  color: red;
-}
-
-.neutral-amount {
-  color: black;
-}
-
-/* Navigation Menu Styles */
-nav ul {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-}
-
-nav li {
+/* Chart Container */
+.bar-chart-container {
   position: relative;
-}
-
-nav li a.dropbtn {
-  display: block;
-  color: #343a40;
-  text-align: left;
-  padding: 8px 16px;
-  text-decoration: none;
-}
-
-nav li a.dropbtn:hover,
-nav li a.dropbtn:focus,
-.dropdown:hover .dropbtn {
-  background-color: #ddd;
-}
-
-nav li.dropdown {
-  display: inline-block;
-}
-
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: #f8f9fa;
-  min-width: 160px;
-  z-index: 1;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-}
-
-.dropdown-content a {
-  color: #343a40;
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
-  text-align: left;
-}
-
-.dropdown-content a:hover {
-  background-color: #ddd;
-}
-
-.dropdown:hover .dropdown-content {
-  display: block;
-}
-
-.menu-icon {
-  font-size: 20px;
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
-/* Table Styles */
-.table-responsive {
   width: 100%;
-  overflow-x: auto;
+  max-width: 800px;
+  height: 400px;
+  margin: 0 auto 1em auto;
 }
 
-/* Force min-width so columns don't get squashed on mobile */
-.table-responsive table {
-  width: 100%;
-  min-width: 600px;
-  border-collapse: collapse;
-  margin-bottom: 1em;
-}
-
-.table-responsive th,
-.table-responsive td {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
-
-.table-responsive tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-.table-responsive th {
-  background-color: #f2f2f2;
-  color: #333;
-}
-
-/* Responsive Layout: keep header on one line */
-@media (max-width: 800px) {
-  header {
-    flex-direction: row;
-    justify-content: space-between;
+/* Responsive Adjustments */
+@media (max-width: 600px) {
+  header,
+  footer {
+    flex-direction: column;
+    text-align: center;
   }
-  .bar-chart-container {
-    width: 100%;
+  .col {
+    padding: 0.5em;
+  }
+  .card-header h2 {
+    font-size: 1em;
+  }
+  .card-form input,
+  .card-form button,
+  .card-form select {
+    font-size: 1em;
+  }
+  .table-responsive table,
+  .table-responsive th,
+  .table-responsive td {
+    font-size: 0.9em;
   }
 }

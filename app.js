@@ -31,20 +31,13 @@ document.addEventListener('DOMContentLoaded', function () {
   // =======================
   // Utility Functions
   // =======================
-  // Allows simple math expressions (with or without $) for amounts
   function parseMathExpression(rawValue) {
-    // Remove $ symbols
     let cleaned = rawValue.replace(/\$/g, '');
-    // Remove any characters not in digits, operators, parentheses, or decimal points
     cleaned = cleaned.replace(/[^0-9+\-*\\/().]/g, '');
-    if (!cleaned) {
-      return 0;
-    }
+    if (!cleaned) return 0;
     try {
       const result = new Function(`return (${cleaned});`)();
-      if (typeof result !== 'number' || isNaN(result)) {
-        throw new Error('Invalid expression');
-      }
+      if (typeof result !== 'number' || isNaN(result)) throw new Error('Invalid expression');
       return result;
     } catch (err) {
       console.warn('Failed to parse math expression:', rawValue);
@@ -133,38 +126,21 @@ document.addEventListener('DOMContentLoaded', function () {
   // Main Display Update
   // =======================
   function updateDisplay() {
-    // 1. Display Checking Account
     displayCheckingBalance();
-
-    // 2. Calculate running totals (Checking)
     const runningTotals = calculateRunningTotals();
-
-    // 3. Display lowest balances by month
     displayLowestBalancesByMonth(runningTotals);
-
-    // 4. Render the Running Budget (Checking) table
     renderRunningBudgetTable(runningTotals);
-
-    // 5. Render Bills Table
     renderBillsTable();
-
-    // 6. Render Adhoc Expenses Table
     renderAdhocExpensesTable();
-
-    // 7. Render Income Table
     renderIncomeTable();
-
-    // 8. Calculate total expenses for charts
     const expenseTotals = calculateTotalExpenses();
     renderExpensesCharts(expenseTotals);
-
-    // 9. Calculate category expenses for charts
     const categoryTotals = calculateExpensesByCategory();
     renderCategoryCharts(categoryTotals);
   }
 
   // =======================
-  // Checking Account
+  // Checking Account Display
   // =======================
   function displayCheckingBalance() {
     const balanceDisplay = document.getElementById('balance-display');
@@ -175,14 +151,11 @@ document.addEventListener('DOMContentLoaded', function () {
     if (balanceDisplay) {
       balanceDisplay.textContent = balanceText;
     } else {
-      // Create balance display element if it doesn't exist
       const balanceElement = document.createElement('h3');
       balanceElement.id = 'balance-display';
       balanceElement.textContent = balanceText;
       document.getElementById('display-area').prepend(balanceElement);
     }
-
-    // Conditional formatting for Checking balance
     const balanceDisplayElement = document.getElementById('balance-display');
     if (accountBalance > 100) {
       balanceDisplayElement.style.color = 'green';
@@ -194,25 +167,20 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // =======================
-  // Calculate Running Totals (Checking)
+  // Calculate Running Totals
   // =======================
   function calculateRunningTotals() {
     if (!startDate) {
       console.error('Start date is not set.');
       return [];
     }
-
     let currentDate = new Date(startDate);
     let runningTotals = [];
     let currentBalance = accountBalance;
-
-    // Define end date
     let endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + projectionLength);
 
-    // Loop day by day
     while (currentDate <= endDate) {
-      // 1. Daily income
       let dailyIncome = 0;
       incomeEntries.forEach((income) => {
         if (isIncomeOnDate(income, currentDate)) {
@@ -220,7 +188,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
 
-      // 2. Daily expenses (bills + adhoc)
       let dailyExpenses = 0;
       bills.forEach((bill) => {
         if (isBillOnDate(bill, currentDate)) {
@@ -233,10 +200,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
 
-      // 3. Daily net
       let dailyNet = dailyIncome - dailyExpenses;
-
-      // 4. Check for manual adjustments
       const adjustment = runningBudgetAdjustments.find(adj => {
         const adjDate = parseDateInput(adj.date);
         return adjDate.toDateString() === currentDate.toDateString();
@@ -245,7 +209,6 @@ document.addEventListener('DOMContentLoaded', function () {
       let eventDescription = getEventsForDate(currentDate);
 
       if (adjustment) {
-        // Overwrite dailyNet/balance if set
         if (adjustment.amount !== undefined) {
           dailyNet = adjustment.amount;
           currentBalance =
@@ -265,26 +228,20 @@ document.addEventListener('DOMContentLoaded', function () {
         dailyNet: dailyNet,
         balance: currentBalance
       });
-
-      // Move to next day
       currentDate.setDate(currentDate.getDate() + 1);
     }
-
     return runningTotals;
   }
 
   // =======================
-  // Render Running Budget (Checking) Table
+  // Render Running Budget Table
   // =======================
   function renderRunningBudgetTable(runningTotals) {
-    const tableBody = document
-      .getElementById('running-budget-table')
-      .getElementsByTagName('tbody')[0];
+    const tableBody = document.getElementById('running-budget-table').getElementsByTagName('tbody')[0];
     tableBody.innerHTML = '';
 
     runningTotals.forEach((item, index) => {
       const row = tableBody.insertRow();
-
       const dateCell = row.insertCell(0);
       const eventCell = row.insertCell(1);
       const debitCreditCell = row.insertCell(2);
@@ -296,7 +253,6 @@ document.addEventListener('DOMContentLoaded', function () {
       debitCreditCell.textContent = `$${item.dailyNet.toFixed(2)}`;
       balanceCell.textContent = `$${item.balance.toFixed(2)}`;
 
-      // Conditional formatting on dailyNet
       if (item.dailyNet > 0) {
         debitCreditCell.classList.add('positive-amount');
       } else if (item.dailyNet === 0) {
@@ -305,7 +261,6 @@ document.addEventListener('DOMContentLoaded', function () {
         debitCreditCell.classList.add('negative-amount');
       }
 
-      // Conditional formatting on balance
       if (item.balance > 100) {
         balanceCell.style.color = 'green';
       } else if (item.balance > 0) {
@@ -314,9 +269,9 @@ document.addEventListener('DOMContentLoaded', function () {
         balanceCell.style.color = 'red';
       }
 
-      // Edit button
       const editBtn = document.createElement('button');
-      editBtn.textContent = 'Edit';
+      editBtn.classList.add('icon-btn');
+      editBtn.innerHTML = '<i class="fa-solid fa-edit"></i>';
       editBtn.dataset.index = index;
       editBtn.dataset.type = 'runningBudget';
       editBtn.addEventListener('click', openEditModal);
@@ -357,25 +312,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function getEventsForDate(date) {
     let events = [];
-
     bills.forEach((bill) => {
       if (isBillOnDate(bill, date)) {
         events.push(bill.name);
       }
     });
-
     incomeEntries.forEach((income) => {
       if (isIncomeOnDate(income, date)) {
         events.push(income.name);
       }
     });
-
     adhocExpenses.forEach((expense) => {
       if (isAdhocExpenseOnDate(expense, date)) {
         events.push(expense.name);
       }
     });
-
     return events.join(' + ');
   }
 
@@ -383,42 +334,30 @@ document.addEventListener('DOMContentLoaded', function () {
   // Lowest Balances By Month
   // =======================
   function displayLowestBalancesByMonth(runningTotals) {
-    const tableBody = document
-      .getElementById('lowest-balances-table')
-      .getElementsByTagName('tbody')[0];
+    const tableBody = document.getElementById('lowest-balances-table').getElementsByTagName('tbody')[0];
     tableBody.innerHTML = '';
 
     const monthlyBalances = {};
     runningTotals.forEach((item) => {
       const monthKey = `${item.date.getFullYear()}-${item.date.getMonth() + 1}`;
       if (!monthlyBalances[monthKey] || item.balance < monthlyBalances[monthKey].balance) {
-        monthlyBalances[monthKey] = {
-          date: new Date(item.date),
-          balance: item.balance
-        };
+        monthlyBalances[monthKey] = { date: new Date(item.date), balance: item.balance };
       }
     });
 
-    // Sort by year-month
-    const sortedMonths = Object.keys(monthlyBalances).sort(
-      (a, b) => new Date(a + '-1') - new Date(b + '-1')
-    );
+    const sortedMonths = Object.keys(monthlyBalances).sort((a, b) => new Date(a + '-1') - new Date(b + '-1'));
     sortedMonths.forEach((monthKey) => {
       const entry = monthlyBalances[monthKey];
       const row = tableBody.insertRow();
-
       const monthCell = row.insertCell(0);
       const dateCell = row.insertCell(1);
       const balanceCell = row.insertCell(2);
 
       const monthName = entry.date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
       monthCell.textContent = monthName;
-
       const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
       dateCell.textContent = entry.date.toLocaleDateString('en-US', dateOptions);
-
       balanceCell.textContent = `$${entry.balance.toFixed(2)}`;
-
       if (entry.balance > 100) {
         balanceCell.style.color = 'green';
       } else if (entry.balance > 0) {
@@ -433,9 +372,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // Render Bills Table
   // =======================
   function renderBillsTable() {
-    const billsTableBody = document
-      .getElementById('bills-list-table')
-      .getElementsByTagName('tbody')[0];
+    const billsTableBody = document.getElementById('bills-list-table').getElementsByTagName('tbody')[0];
     billsTableBody.innerHTML = '';
 
     bills.forEach((bill, index) => {
@@ -444,19 +381,20 @@ document.addEventListener('DOMContentLoaded', function () {
       row.insertCell(1).textContent = bill.date;
       row.insertCell(2).textContent = `$${bill.amount.toFixed(2)}`;
       row.insertCell(3).textContent = bill.category;
-
       const actionsCell = row.insertCell(4);
       actionsCell.classList.add('actions-cell');
 
       const editBtn = document.createElement('button');
-      editBtn.textContent = 'Edit';
+      editBtn.classList.add('icon-btn');
+      editBtn.innerHTML = '<i class="fa-solid fa-edit"></i>';
       editBtn.dataset.index = index;
       editBtn.dataset.type = 'bill';
       editBtn.addEventListener('click', openEditModal);
       actionsCell.appendChild(editBtn);
 
       const deleteBtn = document.createElement('button');
-      deleteBtn.textContent = 'Delete';
+      deleteBtn.classList.add('icon-btn');
+      deleteBtn.innerHTML = '<i class="fa-solid fa-trash-alt"></i>';
       deleteBtn.dataset.index = index;
       deleteBtn.dataset.type = 'bill';
       deleteBtn.addEventListener('click', deleteEntry);
@@ -468,9 +406,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // Render Adhoc Expenses Table
   // =======================
   function renderAdhocExpensesTable() {
-    const adhocExpensesTableBody = document
-      .getElementById('adhoc-expenses-list-table')
-      .getElementsByTagName('tbody')[0];
+    const adhocExpensesTableBody = document.getElementById('adhoc-expenses-list-table').getElementsByTagName('tbody')[0];
     adhocExpensesTableBody.innerHTML = '';
 
     adhocExpenses.forEach((expense, index) => {
@@ -479,19 +415,20 @@ document.addEventListener('DOMContentLoaded', function () {
       row.insertCell(1).textContent = formatRunningBudgetDate(parseDateInput(expense.date));
       row.insertCell(2).textContent = `$${expense.amount.toFixed(2)}`;
       row.insertCell(3).textContent = expense.category;
-
       const actionsCell = row.insertCell(4);
       actionsCell.classList.add('actions-cell');
 
       const editBtn = document.createElement('button');
-      editBtn.textContent = 'Edit';
+      editBtn.classList.add('icon-btn');
+      editBtn.innerHTML = '<i class="fa-solid fa-edit"></i>';
       editBtn.dataset.index = index;
       editBtn.dataset.type = 'adhocExpense';
       editBtn.addEventListener('click', openEditModal);
       actionsCell.appendChild(editBtn);
 
       const deleteBtn = document.createElement('button');
-      deleteBtn.textContent = 'Delete';
+      deleteBtn.classList.add('icon-btn');
+      deleteBtn.innerHTML = '<i class="fa-solid fa-trash-alt"></i>';
       deleteBtn.dataset.index = index;
       deleteBtn.dataset.type = 'adhocExpense';
       deleteBtn.addEventListener('click', deleteEntry);
@@ -503,9 +440,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // Render Income Table
   // =======================
   function renderIncomeTable() {
-    const incomeTableBody = document
-      .getElementById('income-list-table')
-      .getElementsByTagName('tbody')[0];
+    const incomeTableBody = document.getElementById('income-list-table').getElementsByTagName('tbody')[0];
     incomeTableBody.innerHTML = '';
 
     incomeEntries.forEach((income, index) => {
@@ -514,19 +449,20 @@ document.addEventListener('DOMContentLoaded', function () {
       row.insertCell(1).textContent = `$${income.amount.toFixed(2)}`;
       row.insertCell(2).textContent = income.frequency;
       row.insertCell(3).textContent = formatRunningBudgetDate(parseDateInput(income.startDate));
-
       const actionsCell = row.insertCell(4);
       actionsCell.classList.add('actions-cell');
 
       const editBtn = document.createElement('button');
-      editBtn.textContent = 'Edit';
+      editBtn.classList.add('icon-btn');
+      editBtn.innerHTML = '<i class="fa-solid fa-edit"></i>';
       editBtn.dataset.index = index;
       editBtn.dataset.type = 'income';
       editBtn.addEventListener('click', openEditModal);
       actionsCell.appendChild(editBtn);
 
       const deleteBtn = document.createElement('button');
-      deleteBtn.textContent = 'Delete';
+      deleteBtn.classList.add('icon-btn');
+      deleteBtn.innerHTML = '<i class="fa-solid fa-trash-alt"></i>';
       deleteBtn.dataset.index = index;
       deleteBtn.dataset.type = 'income';
       deleteBtn.addEventListener('click', deleteEntry);
@@ -556,14 +492,11 @@ document.addEventListener('DOMContentLoaded', function () {
     bills.forEach((bill) => {
       const key = bill.name;
       const months = projectionLength;
-      // Bill repeats each month
-      const totalAmount = (expenseTotals[key] || 0) + bill.amount * months;
-      expenseTotals[key] = totalAmount;
+      expenseTotals[key] = (expenseTotals[key] || 0) + bill.amount * months;
     });
     adhocExpenses.forEach((expense) => {
       const key = expense.name;
-      const totalAmount = (expenseTotals[key] || 0) + expense.amount;
-      expenseTotals[key] = totalAmount;
+      expenseTotals[key] = (expenseTotals[key] || 0) + expense.amount;
     });
     return expenseTotals;
   }
@@ -573,29 +506,21 @@ document.addEventListener('DOMContentLoaded', function () {
     bills.forEach((bill) => {
       const category = bill.category || 'Misc/Other';
       const months = projectionLength;
-      const totalAmount = (categoryTotals[category] || 0) + bill.amount * months;
-      categoryTotals[category] = totalAmount;
+      categoryTotals[category] = (categoryTotals[category] || 0) + bill.amount * months;
     });
     adhocExpenses.forEach((expense) => {
       const category = expense.category || 'Misc/Other';
-      const totalAmount = (categoryTotals[category] || 0) + expense.amount;
-      categoryTotals[category] = totalAmount;
+      categoryTotals[category] = (categoryTotals[category] || 0) + expense.amount;
     });
     return categoryTotals;
   }
 
   function renderExpensesChart(labels, data) {
     const canvasElement = document.getElementById('expenses-chart');
-    if (!canvasElement) {
-      console.error('Canvas element with id "expenses-chart" not found.');
-      return;
-    }
+    if (!canvasElement) return console.error('Canvas element "expenses-chart" not found.');
     const ctx = canvasElement.getContext('2d');
     if (expensesChart) expensesChart.destroy();
-    if (data.length === 0) {
-      console.warn('No data available for expenses chart.');
-      return;
-    }
+    if (data.length === 0) return console.warn('No data for expenses chart.');
     const maxExpense = Math.max(...data);
     const minExpense = Math.min(...data);
     const colors = data.map((value) => {
@@ -607,62 +532,43 @@ document.addEventListener('DOMContentLoaded', function () {
       type: 'bar',
       data: {
         labels: labels,
-        datasets: [
-          {
-            label: 'Total Expense Over Projection Period',
-            data: data,
-            backgroundColor: colors,
-            borderColor: colors,
-            borderWidth: 1,
-          },
-        ],
+        datasets: [{
+          label: 'Total Expense Over Projection Period',
+          data: data,
+          backgroundColor: colors,
+          borderColor: colors,
+          borderWidth: 1,
+        }],
       },
       options: {
         responsive: true,
-        scales: {
-          y: {
-            type: 'logarithmic', // Use log scale for wide data range
-            beginAtZero: true
-          }
-        },
+        scales: { y: { type: 'logarithmic', beginAtZero: true } },
       },
     });
   }
 
   function renderCategoryExpensesChart(labels, data) {
     const canvasElement = document.getElementById('category-expenses-chart');
-    if (!canvasElement) {
-      console.error('Canvas element with id "category-expenses-chart" not found.');
-      return;
-    }
+    if (!canvasElement) return console.error('Canvas element "category-expenses-chart" not found.');
     const ctx = canvasElement.getContext('2d');
     if (categoryExpensesChart) categoryExpensesChart.destroy();
-    if (data.length === 0) {
-      console.warn('No data available for category expenses chart.');
-      return;
-    }
+    if (data.length === 0) return console.warn('No data for category expenses chart.');
     const colors = labels.map((label, index) => `hsl(${(index * 360) / labels.length}, 70%, 50%)`);
     categoryExpensesChart = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: labels,
-        datasets: [
-          {
-            label: 'Expenses by Category',
-            data: data,
-            backgroundColor: colors,
-            borderColor: colors,
-            borderWidth: 1,
-          },
-        ],
+        datasets: [{
+          label: 'Expenses by Category',
+          data: data,
+          backgroundColor: colors,
+          borderColor: colors,
+          borderWidth: 1,
+        }],
       },
       options: {
         responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        },
+        scales: { y: { beginAtZero: true } },
       },
     });
   }
@@ -685,13 +591,10 @@ document.addEventListener('DOMContentLoaded', function () {
       editForm.innerHTML = `
         <label for="edit-bill-name">Bill Name:</label>
         <input type="text" id="edit-bill-name" required value="${bill.name}" />
-
         <label for="edit-bill-date">Day of Month (1-31):</label>
         <input type="number" id="edit-bill-date" min="1" max="31" required value="${bill.date}" />
-
         <label for="edit-bill-amount">Amount (USD):</label>
         <input type="text" id="edit-bill-amount" required value="${bill.amount}" />
-
         <label for="edit-bill-category">Category:</label>
         <div class="category-container">
           <select id="edit-bill-category">
@@ -699,7 +602,6 @@ document.addEventListener('DOMContentLoaded', function () {
           </select>
           <button type="button" id="add-edit-bill-category-btn">Add Category</button>
         </div>
-
         <button type="submit">Update Bill</button>
         <button type="button" id="cancel-edit-btn">Cancel</button>
       `;
@@ -709,20 +611,16 @@ document.addEventListener('DOMContentLoaded', function () {
         editModal.style.display = 'none';
       };
       document.getElementById('add-edit-bill-category-btn').addEventListener('click', addCategory);
-
     } else if (type === 'adhocExpense') {
       const expense = adhocExpenses[index];
       editModalTitle.textContent = 'Edit Adhoc Expense';
       editForm.innerHTML = `
         <label for="edit-adhoc-expense-name">Expense Name:</label>
         <input type="text" id="edit-adhoc-expense-name" required value="${expense.name}" />
-
         <label for="edit-adhoc-expense-date">Date:</label>
         <input type="date" id="edit-adhoc-expense-date" required value="${expense.date}" />
-
         <label for="edit-adhoc-expense-amount">Amount (USD):</label>
         <input type="text" id="edit-adhoc-expense-amount" required value="${expense.amount}" />
-
         <label for="edit-adhoc-expense-category">Category:</label>
         <div class="category-container">
           <select id="edit-adhoc-expense-category">
@@ -730,7 +628,6 @@ document.addEventListener('DOMContentLoaded', function () {
           </select>
           <button type="button" id="add-edit-adhoc-category-btn">Add Category</button>
         </div>
-
         <button type="submit">Update Expense</button>
         <button type="button" id="cancel-edit-btn">Cancel</button>
       `;
@@ -740,17 +637,14 @@ document.addEventListener('DOMContentLoaded', function () {
         editModal.style.display = 'none';
       };
       document.getElementById('add-edit-adhoc-category-btn').addEventListener('click', addCategory);
-
     } else if (type === 'income') {
       const income = incomeEntries[index];
       editModalTitle.textContent = 'Edit Income';
       editForm.innerHTML = `
         <label for="edit-income-name">Income Name:</label>
         <input type="text" id="edit-income-name" required value="${income.name}" />
-
         <label for="edit-income-amount">Amount per Paycheck:</label>
         <input type="text" id="edit-income-amount" required value="${income.amount}" />
-
         <label for="edit-income-frequency">Frequency:</label>
         <select id="edit-income-frequency">
           <option value="Weekly" ${income.frequency === 'Weekly' ? 'selected' : ''}>Weekly</option>
@@ -758,10 +652,8 @@ document.addEventListener('DOMContentLoaded', function () {
           <option value="Monthly" ${income.frequency === 'Monthly' ? 'selected' : ''}>Monthly</option>
           <option value="One-time" ${income.frequency === 'One-time' ? 'selected' : ''}>One-time</option>
         </select>
-
         <label for="edit-income-start-date">Start Date:</label>
         <input type="date" id="edit-income-start-date" required value="${income.startDate}" />
-
         <button type="submit">Update Income</button>
         <button type="button" id="cancel-edit-btn">Cancel</button>
       `;
@@ -770,7 +662,6 @@ document.addEventListener('DOMContentLoaded', function () {
         updateIncomeEntry(index);
         editModal.style.display = 'none';
       };
-
     } else if (type === 'runningBudget') {
       const runningTotals = calculateRunningTotals();
       const entry = runningTotals[index];
@@ -778,13 +669,10 @@ document.addEventListener('DOMContentLoaded', function () {
       editForm.innerHTML = `
         <label for="edit-running-budget-date">Date:</label>
         <input type="date" id="edit-running-budget-date" required value="${entry.date.toISOString().split('T')[0]}" />
-
         <label for="edit-running-budget-amount">Debit/Credit Amount:</label>
         <input type="text" id="edit-running-budget-amount" required value="${entry.dailyNet}" />
-
         <label for="edit-running-budget-event">Event/Bill:</label>
         <input type="text" id="edit-running-budget-event" value="${entry.event}" />
-
         <button type="submit">Update Entry</button>
         <button type="button" id="cancel-edit-btn">Cancel</button>
       `;
@@ -795,7 +683,6 @@ document.addEventListener('DOMContentLoaded', function () {
         editModal.style.display = 'none';
       };
     }
-
     editModal.style.display = 'block';
     document.getElementById('cancel-edit-btn').addEventListener('click', function () {
       editModal.style.display = 'none';
@@ -851,10 +738,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const newDate = document.getElementById('edit-running-budget-date').value;
     const amount = parseMathExpression(document.getElementById('edit-running-budget-amount').value);
     const event = document.getElementById('edit-running-budget-event').value;
-
     const adjIndex = runningBudgetAdjustments.findIndex(adj => adj.date === oldDate);
     const adjustment = { date: newDate, amount, event };
-
     if (adjIndex >= 0) {
       runningBudgetAdjustments[adjIndex] = adjustment;
     } else {
@@ -867,7 +752,6 @@ document.addEventListener('DOMContentLoaded', function () {
   function deleteEntry(event) {
     const index = event.target.dataset.index;
     const type = event.target.dataset.type;
-
     if (type === 'bill') {
       bills.splice(index, 1);
     } else if (type === 'adhocExpense') {
@@ -875,7 +759,6 @@ document.addEventListener('DOMContentLoaded', function () {
     } else if (type === 'income') {
       incomeEntries.splice(index, 1);
     }
-
     saveData();
     updateDisplay();
   }
@@ -889,9 +772,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // =======================
   // Form Submissions
   // =======================
-  // Bills
-  const billForm = document.getElementById('bill-form');
-  billForm.addEventListener('submit', function (e) {
+  document.getElementById('bill-form').addEventListener('submit', function (e) {
     e.preventDefault();
     const name = document.getElementById('bill-name').value.trim();
     const date = parseInt(document.getElementById('bill-date').value, 10);
@@ -901,16 +782,13 @@ document.addEventListener('DOMContentLoaded', function () {
       alert('Please enter a valid day of the month (1-31).');
       return;
     }
-    const bill = { name, date, amount, category };
-    bills.push(bill);
+    bills.push({ name, date, amount, category });
     saveData();
-    billForm.reset();
+    e.target.reset();
     updateDisplay();
   });
 
-  // Adhoc Expense
-  const adhocExpenseForm = document.getElementById('adhoc-expense-form');
-  adhocExpenseForm.addEventListener('submit', function (e) {
+  document.getElementById('adhoc-expense-form').addEventListener('submit', function (e) {
     e.preventDefault();
     const name = document.getElementById('adhoc-expense-name').value.trim();
     const dateInput = document.getElementById('adhoc-expense-date').value;
@@ -920,16 +798,13 @@ document.addEventListener('DOMContentLoaded', function () {
       alert('Please enter a valid date.');
       return;
     }
-    const expense = { name, date: dateInput, amount, category };
-    adhocExpenses.push(expense);
+    adhocExpenses.push({ name, date: dateInput, amount, category });
     saveData();
-    adhocExpenseForm.reset();
+    e.target.reset();
     updateDisplay();
   });
 
-  // Income
-  const incomeForm = document.getElementById('income-form');
-  incomeForm.addEventListener('submit', function (e) {
+  document.getElementById('income-form').addEventListener('submit', function (e) {
     e.preventDefault();
     const name = document.getElementById('income-name').value.trim();
     const amount = parseMathExpression(document.getElementById('income-amount').value);
@@ -939,16 +814,13 @@ document.addEventListener('DOMContentLoaded', function () {
       alert('Please enter a valid start date.');
       return;
     }
-    const income = { name, amount, frequency, startDate: startDateInput };
-    incomeEntries.push(income);
+    incomeEntries.push({ name, amount, frequency, startDate: startDateInput });
     saveData();
-    incomeForm.reset();
+    e.target.reset();
     updateDisplay();
   });
 
-  // Checking Account Balance
-  const balanceForm = document.getElementById('balance-form');
-  balanceForm.addEventListener('submit', function (e) {
+  document.getElementById('balance-form').addEventListener('submit', function (e) {
     e.preventDefault();
     accountName = document.getElementById('account-name').value.trim();
     const balance = parseMathExpression(document.getElementById('account-balance').value);
@@ -958,13 +830,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     accountBalance = balance;
     saveData();
-    balanceForm.reset();
+    e.target.reset();
     updateDisplay();
   });
 
-  // Start Date & Projection
-  const startDateForm = document.getElementById('start-date-form');
-  startDateForm.addEventListener('submit', function (e) {
+  document.getElementById('start-date-form').addEventListener('submit', function (e) {
     e.preventDefault();
     const startDateInput = document.getElementById('start-date-input').value;
     const projectionLengthInput = document.getElementById('projection-length').value;
@@ -981,8 +851,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // =======================
   // Local Storage Import/Export/Reset
   // =======================
-  const exportBtn = document.getElementById('export-btn');
-  exportBtn.addEventListener('click', function (e) {
+  document.getElementById('export-btn').addEventListener('click', function (e) {
     e.preventDefault();
     const data = {
       bills,
@@ -1005,8 +874,7 @@ document.addEventListener('DOMContentLoaded', function () {
     downloadAnchorNode.remove();
   });
 
-  const exportCsvBtn = document.getElementById('export-csv-btn');
-  exportCsvBtn.addEventListener('click', function (e) {
+  document.getElementById('export-csv-btn').addEventListener('click', function (e) {
     e.preventDefault();
     const data = {
       bills,
@@ -1032,39 +900,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function convertDataToCsv(data) {
     let csvContent = '';
-
-    csvContent += 'Bills\n';
-    csvContent += 'Name,Date,Amount,Category\n';
+    csvContent += 'Bills\nName,Date,Amount,Category\n';
     data.bills.forEach(bill => {
       csvContent += `${bill.name},${bill.date},${bill.amount},${bill.category}\n`;
     });
-
-    csvContent += '\nAdhoc Expenses\n';
-    csvContent += 'Name,Date,Amount,Category\n';
+    csvContent += '\nAdhoc Expenses\nName,Date,Amount,Category\n';
     data.adhocExpenses.forEach(expense => {
       csvContent += `${expense.name},${expense.date},${expense.amount},${expense.category}\n`;
     });
-
-    csvContent += '\nIncome Entries\n';
-    csvContent += 'Name,Amount,Frequency,Start Date\n';
+    csvContent += '\nIncome Entries\nName,Amount,Frequency,Start Date\n';
     data.incomeEntries.forEach(income => {
       csvContent += `${income.name},${income.amount},${income.frequency},${income.startDate}\n`;
     });
-
-    csvContent += '\nChecking Account\n';
-    csvContent += 'Account Name,Balance\n';
+    csvContent += '\nChecking Account\nAccount Name,Balance\n';
     csvContent += `${data.accountName},${data.accountBalance}\n`;
-
-    csvContent += '\nStart Date and Projection Length\n';
-    csvContent += 'Start Date,Projection Length\n';
+    csvContent += '\nStart Date and Projection Length\nStart Date,Projection Length\n';
     csvContent += `${data.startDate},${data.projectionLength}\n`;
-
     return csvContent;
   }
 
   const importFileInput = document.getElementById('import-file');
-  const importBtn = document.getElementById('import-btn');
-  importBtn.addEventListener('click', function (e) {
+  document.getElementById('import-btn').addEventListener('click', function (e) {
     e.preventDefault();
     importFileInput.click();
   });
@@ -1106,7 +962,6 @@ document.addEventListener('DOMContentLoaded', function () {
           "Misc/Other"
         ];
         runningBudgetAdjustments = data.runningBudgetAdjustments || [];
-
         saveData();
         populateCategories();
         initializeStartDate();
@@ -1120,8 +975,7 @@ document.addEventListener('DOMContentLoaded', function () {
     importFileInput.value = '';
   });
 
-  const resetBtn = document.getElementById('reset-btn');
-  resetBtn.addEventListener('click', function (e) {
+  document.getElementById('reset-btn').addEventListener('click', function (e) {
     e.preventDefault();
     if (confirm('Are you sure you want to reset all data?')) {
       localStorage.clear();
@@ -1153,14 +1007,12 @@ document.addEventListener('DOMContentLoaded', function () {
         "Misc/Other"
       ];
       runningBudgetAdjustments = [];
-
       document.getElementById('bill-form').reset();
       document.getElementById('adhoc-expense-form').reset();
       document.getElementById('income-form').reset();
       document.getElementById('balance-form').reset();
       document.getElementById('start-date-form').reset();
       document.getElementById('edit-modal').style.display = 'none';
-
       saveData();
       populateCategories();
       initializeStartDate();
@@ -1192,7 +1044,6 @@ document.addEventListener('DOMContentLoaded', function () {
       instructionsModal.style.display = 'none';
     }
   });
-  // Show instructions on page load:
   window.addEventListener('load', function () {
     instructionsModal.style.display = 'block';
   });
@@ -1205,12 +1056,12 @@ document.addEventListener('DOMContentLoaded', function () {
     collapsibleCards.forEach(card => {
       const header = card.querySelector('.card-header');
       const cardBody = card.querySelector('.card-body');
-      const toggleIcon = header.querySelector('.card-toggle');
+      const toggleIcon = header.querySelector('.card-toggle i');
 
       if (header && cardBody) {
         if (!card.classList.contains('expanded')) {
           cardBody.classList.add('collapsed');
-          toggleIcon.style.transform = 'none';
+          toggleIcon.style.transform = 'rotate(0deg)';
         } else {
           toggleIcon.style.transform = 'rotate(90deg)';
         }
@@ -1223,13 +1074,12 @@ document.addEventListener('DOMContentLoaded', function () {
           } else {
             cardBody.classList.add('collapsed');
             card.classList.remove('expanded');
-            toggleIcon.style.transform = 'none';
+            toggleIcon.style.transform = 'rotate(0deg)';
           }
         });
       }
     });
 
-    // For Expand Cards / Collapse Cards
     const expandCardsBtn = document.getElementById('expand-cards-btn');
     const collapseCardsBtn = document.getElementById('collapse-cards-btn');
 
@@ -1239,13 +1089,9 @@ document.addEventListener('DOMContentLoaded', function () {
         collapsibleCards.forEach(card => {
           card.classList.add('expanded');
           const body = card.querySelector('.card-body');
-          const toggleIcon = card.querySelector('.card-toggle');
-          if (body) {
-            body.classList.remove('collapsed');
-          }
-          if (toggleIcon) {
-            toggleIcon.style.transform = 'rotate(90deg)';
-          }
+          const toggleIcon = card.querySelector('.card-toggle i');
+          if (body) body.classList.remove('collapsed');
+          if (toggleIcon) toggleIcon.style.transform = 'rotate(90deg)';
         });
       });
     }
@@ -1256,13 +1102,9 @@ document.addEventListener('DOMContentLoaded', function () {
         collapsibleCards.forEach(card => {
           card.classList.remove('expanded');
           const body = card.querySelector('.card-body');
-          const toggleIcon = card.querySelector('.card-toggle');
-          if (body) {
-            body.classList.add('collapsed');
-          }
-          if (toggleIcon) {
-            toggleIcon.style.transform = 'none';
-          }
+          const toggleIcon = card.querySelector('.card-toggle i');
+          if (body) body.classList.add('collapsed');
+          if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
         });
       });
     }
@@ -1274,8 +1116,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function populateCategories() {
     const adhocCategorySelect = document.getElementById('adhoc-expense-category');
     const billCategorySelect = document.getElementById('bill-category');
-    const selects = [adhocCategorySelect, billCategorySelect];
-    selects.forEach(select => {
+    [adhocCategorySelect, billCategorySelect].forEach(select => {
       if (select) {
         select.innerHTML = '';
         categories.forEach(category => {
@@ -1288,10 +1129,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  const addAdhocCategoryBtn = document.getElementById('add-adhoc-category-btn');
-  addAdhocCategoryBtn.addEventListener('click', addCategory);
-  const addBillCategoryBtn = document.getElementById('add-bill-category-btn');
-  addBillCategoryBtn.addEventListener('click', addCategory);
+  document.getElementById('add-adhoc-category-btn').addEventListener('click', addCategory);
+  document.getElementById('add-bill-category-btn').addEventListener('click', addCategory);
 
   function addCategory() {
     const newCategory = prompt('Enter new category:');
