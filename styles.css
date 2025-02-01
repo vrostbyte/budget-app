@@ -1,4 +1,4 @@
-/* General reset & base styling */
+/* General Reset & Base Styling */
 * {
   box-sizing: border-box;
 }
@@ -10,18 +10,22 @@ body {
   color: #343a40;
 }
 
-/* Header and Footer */
-header,
-footer {
-  background-color: #f8f9fa;
+/* Header & Footer */
+header {
+  position: relative;
   padding: 0.5em 1em;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  background-color: #f8f9fa;
+  text-align: center;
 }
-header h1,
-footer p {
+header nav {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+header h1 {
   margin: 0;
+  font-size: 1.5em;
 }
 
 /* Navigation Menu Styles */
@@ -257,10 +261,14 @@ button.icon-btn:hover {
 
 /* Responsive Adjustments */
 @media (max-width: 600px) {
-  header,
-  footer {
-    flex-direction: column;
+  header {
     text-align: center;
+  }
+  header nav {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
   }
   .col {
     padding: 0.5em;

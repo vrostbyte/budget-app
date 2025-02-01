@@ -874,51 +874,6 @@ document.addEventListener('DOMContentLoaded', function () {
     downloadAnchorNode.remove();
   });
 
-  document.getElementById('export-csv-btn').addEventListener('click', function (e) {
-    e.preventDefault();
-    const data = {
-      bills,
-      incomeEntries,
-      adhocExpenses,
-      accountBalance,
-      accountName,
-      startDate: startDate ? startDate.toISOString() : '',
-      projectionLength,
-      categories,
-      runningBudgetAdjustments
-    };
-    const csvData = convertDataToCsv(data);
-    const dataStr = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvData);
-    const downloadAnchorNode = document.createElement('a');
-    const fileName = `budget_data_${getCurrentDateTimeString()}.csv`;
-    downloadAnchorNode.setAttribute('href', dataStr);
-    downloadAnchorNode.setAttribute('download', fileName);
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-  });
-
-  function convertDataToCsv(data) {
-    let csvContent = '';
-    csvContent += 'Bills\nName,Date,Amount,Category\n';
-    data.bills.forEach(bill => {
-      csvContent += `${bill.name},${bill.date},${bill.amount},${bill.category}\n`;
-    });
-    csvContent += '\nAdhoc Expenses\nName,Date,Amount,Category\n';
-    data.adhocExpenses.forEach(expense => {
-      csvContent += `${expense.name},${expense.date},${expense.amount},${expense.category}\n`;
-    });
-    csvContent += '\nIncome Entries\nName,Amount,Frequency,Start Date\n';
-    data.incomeEntries.forEach(income => {
-      csvContent += `${income.name},${income.amount},${income.frequency},${income.startDate}\n`;
-    });
-    csvContent += '\nChecking Account\nAccount Name,Balance\n';
-    csvContent += `${data.accountName},${data.accountBalance}\n`;
-    csvContent += '\nStart Date and Projection Length\nStart Date,Projection Length\n';
-    csvContent += `${data.startDate},${data.projectionLength}\n`;
-    return csvContent;
-  }
-
   const importFileInput = document.getElementById('import-file');
   document.getElementById('import-btn').addEventListener('click', function (e) {
     e.preventDefault();
