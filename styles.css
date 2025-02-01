@@ -209,13 +209,13 @@ button.icon-btn:hover {
   background-color: rgba(0, 0, 0, 0.5);
 }
 .modal-content {
-  background-color: #fefefe;
+  background-color: #f9f9f9;
   margin: 5% auto;
   padding: 2em;
-  border: 1px solid #888;
+  border: 1px solid #ddd;
   width: 90%;
   max-width: 600px;
-  border-radius: 6px;
+  border-radius: 8px;
   position: relative;
 }
 .modal-form form {

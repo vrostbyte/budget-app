@@ -577,8 +577,11 @@ document.addEventListener('DOMContentLoaded', function () {
   // Edit Modal
   // =======================
   function openEditModal(event) {
-    const index = event.target.dataset.index;
-    const type = event.target.dataset.type;
+    // Use closest() to ensure we get the button element even if the icon is clicked.
+    const btn = event.target.closest('button');
+    if (!btn) return;
+    const index = btn.dataset.index;
+    const type = btn.dataset.type;
     const editModal = document.getElementById('edit-modal');
     const editForm = document.getElementById('edit-form');
     const editModalTitle = document.getElementById('edit-modal-title');
@@ -611,6 +614,7 @@ document.addEventListener('DOMContentLoaded', function () {
         editModal.style.display = 'none';
       };
       document.getElementById('add-edit-bill-category-btn').addEventListener('click', addCategory);
+
     } else if (type === 'adhocExpense') {
       const expense = adhocExpenses[index];
       editModalTitle.textContent = 'Edit Adhoc Expense';
@@ -637,6 +641,7 @@ document.addEventListener('DOMContentLoaded', function () {
         editModal.style.display = 'none';
       };
       document.getElementById('add-edit-adhoc-category-btn').addEventListener('click', addCategory);
+
     } else if (type === 'income') {
       const income = incomeEntries[index];
       editModalTitle.textContent = 'Edit Income';
@@ -662,6 +667,7 @@ document.addEventListener('DOMContentLoaded', function () {
         updateIncomeEntry(index);
         editModal.style.display = 'none';
       };
+
     } else if (type === 'runningBudget') {
       const runningTotals = calculateRunningTotals();
       const entry = runningTotals[index];
