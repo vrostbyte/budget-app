@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
     <meta charset="UTF-8" />
     <meta
       name="viewport"
@@ -21,9 +21,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
+    <!-- Persistent Header -->
     <header>
-      <!-- Navigation Menu -->
-      <nav>
+      <!-- Left Menu (Hamburger) -->
+      <nav class="left-menu">
         <ul>
           <li class="dropdown">
             <a href="#" class="dropbtn">
@@ -43,338 +44,368 @@
           </li>
         </ul>
       </nav>
+      <!-- Centered App Title -->
       <h1>Budget App</h1>
-    </header>
-
-    <!-- Instructions Modal -->
-    <div id="instructions-modal" class="modal">
-      <div class="modal-content">
-        <span class="close-btn" id="close-modal">&times;</span>
-        <h2>How to Use the Budget App</h2>
-        <p>Welcome to the Budget App! Here's how you can use it:</p>
+      <!-- Right Menu (Screen Switcher) -->
+      <nav class="right-menu">
         <ul>
-          <li>
-            <strong>Set Start Date and Projection Length:</strong> Use the form to set your
-            budget start date and how many months you want to project.
-          </li>
-          <li>
-            <strong>Update Account Balance:</strong> Enter your current checking account balance
-            and optionally name your account.
-          </li>
-          <li>
-            <strong>Add Bills/Expenses:</strong> Use the "Add Bill/Expense" form to input recurring
-            monthly expenses.
-          </li>
-          <li>
-            <strong>Add Adhoc Expenses:</strong> Use the "Add Adhoc Expense" form for one-time expenses
-            on specific dates.
-          </li>
-          <li>
-            <strong>Add Income:</strong> Use the "Add Income" form to input your income sources and
-            their frequencies.
-          </li>
-          <li>
-            <strong>View Running Budget (Checking):</strong> The "Running Budget (Checking)" table shows
-            daily net changes for your main account.
-          </li>
-          <li>
-            <strong>Edit Entries:</strong> Use the edit (pencil) icons to modify entries or the trash
-            icons to delete them.
-          </li>
-          <li>
-            <strong>Export/Import Data:</strong> Use the "Menu" to export or import your JSON data.
-          </li>
-          <li>
-            <strong>Reset Data:</strong> Use the "Reset Data" option to clear all data and start fresh.
+          <li class="dropdown">
+            <a href="#" class="dropbtn">
+              <i class="fa-solid fa-window-maximize"></i>
+            </a>
+            <div class="dropdown-content right-dropdown">
+              <a href="#" id="screen-budget">Budget Screen</a>
+              <a href="#" id="screen-debt">Debt Screen</a>
+            </div>
           </li>
         </ul>
-        <button id="close-modal-btn">Continue</button>
-      </div>
-    </div>
+      </nav>
+    </header>
 
-    <!-- Edit Modal -->
-    <div id="edit-modal" class="modal">
-      <div class="modal-content modal-form">
-        <span class="close-btn" id="close-edit-modal">&times;</span>
-        <h2 id="edit-modal-title">Edit Entry</h2>
-        <form id="edit-form">
-          <!-- Fields will be populated dynamically -->
-        </form>
-      </div>
-    </div>
-
+    <!-- Main Content Area -->
     <main>
-      <div class="container">
-        <div class="row">
-          <!-- Left Column -->
-          <div class="col" id="input-forms">
-            <!-- Start Date and Projection Length Form -->
-            <div class="collapsible-card expanded">
-              <div class="card-header">
-                <h2>Start Date and Projection Length</h2>
-                <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+      <!-- Budget Screen (default) -->
+      <div id="budget-screen">
+        <div class="container">
+          <div class="row">
+            <!-- Left Column: Budget Input Forms -->
+            <div class="col" id="input-forms">
+              <!-- Start Date and Projection Length Form -->
+              <div class="collapsible-card expanded">
+                <div class="card-header">
+                  <h2>Start Date and Projection Length</h2>
+                  <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+                </div>
+                <div class="card-body">
+                  <form id="start-date-form" class="card-form">
+                    <label for="start-date-input">Start Date:</label>
+                    <input type="date" id="start-date-input" required />
+                    <label for="projection-length">Projection Length (months):</label>
+                    <input type="number" id="projection-length" min="1" value="1" required />
+                    <button type="submit">Set Start Date</button>
+                  </form>
+                </div>
               </div>
-              <div class="card-body">
-                <form id="start-date-form" class="card-form">
-                  <label for="start-date-input">Start Date:</label>
-                  <input type="date" id="start-date-input" required />
 
-                  <label for="projection-length">Projection Length (months):</label>
-                  <input type="number" id="projection-length" min="1" value="1" required />
-
-                  <button type="submit">Set Start Date</button>
-                </form>
+              <!-- Checking Account Form -->
+              <div class="collapsible-card expanded">
+                <div class="card-header">
+                  <h2>Checking Account Balance</h2>
+                  <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+                </div>
+                <div class="card-body">
+                  <form id="balance-form" class="card-form">
+                    <label for="account-name">Account Name (e.g., My Checking):</label>
+                    <input type="text" id="account-name" placeholder="e.g., Checking Account" />
+                    <label for="account-balance">Current Checking Balance (USD):</label>
+                    <input type="text" id="account-balance" required />
+                    <button type="submit">Update Checking</button>
+                  </form>
+                </div>
               </div>
-            </div>
 
-            <!-- Account Balance Form (Checking) -->
-            <div class="collapsible-card expanded">
-              <div class="card-header">
-                <h2>Checking Account Balance</h2>
-                <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+              <!-- Bills Form -->
+              <div class="collapsible-card expanded">
+                <div class="card-header">
+                  <h2>Add Bill/Expense</h2>
+                  <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+                </div>
+                <div class="card-body">
+                  <form id="bill-form" class="card-form">
+                    <label for="bill-name">Bill Name:</label>
+                    <input type="text" id="bill-name" required />
+                    <label for="bill-date">Day of Month (1-31):</label>
+                    <input type="number" id="bill-date" min="1" max="31" required />
+                    <label for="bill-amount">Amount (USD):</label>
+                    <input type="text" id="bill-amount" required />
+                    <label for="bill-category">Category:</label>
+                    <div class="category-container">
+                      <select id="bill-category">
+                        <!-- Populated dynamically -->
+                      </select>
+                      <button type="button" id="add-bill-category-btn">Add Category</button>
+                    </div>
+                    <button type="submit">Add Bill</button>
+                  </form>
+                </div>
               </div>
-              <div class="card-body">
-                <form id="balance-form" class="card-form">
-                  <label for="account-name">Account Name (e.g., My Checking):</label>
-                  <input type="text" id="account-name" placeholder="e.g., Checking Account" />
 
-                  <label for="account-balance">Current Checking Balance (USD):</label>
-                  <input type="text" id="account-balance" required />
-
-                  <button type="submit">Update Checking</button>
-                </form>
-              </div>
-            </div>
-
-            <!-- Bills Form -->
-            <div class="collapsible-card expanded">
-              <div class="card-header">
-                <h2>Add Bill/Expense</h2>
-                <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
-              </div>
-              <div class="card-body">
-                <form id="bill-form" class="card-form">
-                  <label for="bill-name">Bill Name:</label>
-                  <input type="text" id="bill-name" required />
-
-                  <label for="bill-date">Day of Month (1-31):</label>
-                  <input type="number" id="bill-date" min="1" max="31" required />
-
-                  <label for="bill-amount">Amount (USD):</label>
-                  <input type="text" id="bill-amount" required />
-
-                  <label for="bill-category">Category:</label>
-                  <div class="category-container">
-                    <select id="bill-category">
-                      <!-- Categories will be populated dynamically -->
-                    </select>
-                    <button type="button" id="add-bill-category-btn">Add Category</button>
+              <!-- Bills List -->
+              <div class="collapsible-card expanded">
+                <div class="card-header">
+                  <h2>Bills and Expenses</h2>
+                  <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table id="bills-list-table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Day</th>
+                          <th>Amount</th>
+                          <th>Category</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <!-- Populated dynamically -->
+                      </tbody>
+                    </table>
                   </div>
-
-                  <button type="submit">Add Bill</button>
-                </form>
-              </div>
-            </div>
-
-            <!-- Bills List -->
-            <div class="collapsible-card expanded">
-              <div class="card-header">
-                <h2>Bills and Expenses</h2>
-                <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
-              </div>
-              <div class="card-body">
-                <div class="table-responsive">
-                  <table id="bills-list-table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Day</th>
-                        <th>Amount</th>
-                        <th>Category</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <!-- Rows will be added dynamically -->
-                    </tbody>
-                  </table>
                 </div>
               </div>
-            </div>
 
-            <!-- Adhoc Expenses Form -->
-            <div class="collapsible-card expanded">
-              <div class="card-header">
-                <h2>Add Adhoc Expense</h2>
-                <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+              <!-- Adhoc Expenses Form -->
+              <div class="collapsible-card expanded">
+                <div class="card-header">
+                  <h2>Add Adhoc Expense</h2>
+                  <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+                </div>
+                <div class="card-body">
+                  <form id="adhoc-expense-form" class="card-form">
+                    <label for="adhoc-expense-name">Expense Name:</label>
+                    <input type="text" id="adhoc-expense-name" required />
+                    <label for="adhoc-expense-date">Date:</label>
+                    <input type="date" id="adhoc-expense-date" required />
+                    <label for="adhoc-expense-amount">Amount (USD):</label>
+                    <input type="text" id="adhoc-expense-amount" required />
+                    <label for="adhoc-expense-category">Category:</label>
+                    <div class="category-container">
+                      <select id="adhoc-expense-category">
+                        <!-- Populated dynamically -->
+                      </select>
+                      <button type="button" id="add-adhoc-category-btn">Add Category</button>
+                    </div>
+                    <button type="submit">Add Adhoc Expense</button>
+                  </form>
+                </div>
               </div>
-              <div class="card-body">
-                <form id="adhoc-expense-form" class="card-form">
-                  <label for="adhoc-expense-name">Expense Name:</label>
-                  <input type="text" id="adhoc-expense-name" required />
 
-                  <label for="adhoc-expense-date">Date:</label>
-                  <input type="date" id="adhoc-expense-date" required />
-
-                  <label for="adhoc-expense-amount">Amount (USD):</label>
-                  <input type="text" id="adhoc-expense-amount" required />
-
-                  <label for="adhoc-expense-category">Category:</label>
-                  <div class="category-container">
-                    <select id="adhoc-expense-category">
-                      <!-- Categories will be populated dynamically -->
-                    </select>
-                    <button type="button" id="add-adhoc-category-btn">Add Category</button>
+              <!-- Adhoc Expenses List -->
+              <div class="collapsible-card expanded">
+                <div class="card-header">
+                  <h2>Adhoc Expenses</h2>
+                  <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table id="adhoc-expenses-list-table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Date</th>
+                          <th>Amount</th>
+                          <th>Category</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <!-- Populated dynamically -->
+                      </tbody>
+                    </table>
                   </div>
-
-                  <button type="submit">Add Adhoc Expense</button>
-                </form>
+                </div>
               </div>
-            </div>
 
-            <!-- Adhoc Expenses List -->
-            <div class="collapsible-card expanded">
-              <div class="card-header">
-                <h2>Adhoc Expenses</h2>
-                <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+              <!-- Income Form -->
+              <div class="collapsible-card expanded">
+                <div class="card-header">
+                  <h2>Add Income</h2>
+                  <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+                </div>
+                <div class="card-body">
+                  <form id="income-form" class="card-form">
+                    <label for="income-name">Income Name:</label>
+                    <input type="text" id="income-name" required />
+                    <label for="income-amount">Amount per Paycheck:</label>
+                    <input type="text" id="income-amount" required />
+                    <label for="income-frequency">Frequency:</label>
+                    <select id="income-frequency">
+                      <option value="Weekly">Weekly</option>
+                      <option value="Bi-weekly">Bi-weekly</option>
+                      <option value="Monthly">Monthly</option>
+                      <option value="One-time">One-time</option>
+                    </select>
+                    <label for="income-start-date">Start Date:</label>
+                    <input type="date" id="income-start-date" required />
+                    <button type="submit">Add Income</button>
+                  </form>
+                </div>
               </div>
-              <div class="card-body">
-                <div class="table-responsive">
-                  <table id="adhoc-expenses-list-table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Date</th>
-                        <th>Amount</th>
-                        <th>Category</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <!-- Rows will be added dynamically -->
-                    </tbody>
-                  </table>
+
+              <!-- Income Entries List -->
+              <div class="collapsible-card expanded">
+                <div class="card-header">
+                  <h2>Income Entries</h2>
+                  <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table id="income-list-table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Amount</th>
+                          <th>Frequency</th>
+                          <th>Start Date</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <!-- Populated dynamically -->
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
-
-            <!-- Income Form -->
-            <div class="collapsible-card expanded">
-              <div class="card-header">
-                <h2>Add Income</h2>
-                <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+            <!-- Right Column: Budget Screen Charts -->
+            <div class="col" id="display-area-budget">
+              <!-- Checking Account Balance Display (inserted dynamically) -->
+              <!-- Expenses Bar Chart -->
+              <h2>Expenses Breakdown (Total Over Projection Period)</h2>
+              <div class="bar-chart-container reduced-space">
+                <canvas id="expenses-chart"></canvas>
               </div>
-              <div class="card-body">
-                <form id="income-form" class="card-form">
-                  <label for="income-name">Income Name:</label>
-                  <input type="text" id="income-name" required />
-
-                  <label for="income-amount">Amount per Paycheck:</label>
-                  <input type="text" id="income-amount" required />
-
-                  <label for="income-frequency">Frequency:</label>
-                  <select id="income-frequency">
-                    <option value="Weekly">Weekly</option>
-                    <option value="Bi-weekly">Bi-weekly</option>
-                    <option value="Monthly">Monthly</option>
-                    <option value="One-time">One-time</option>
-                  </select>
-
-                  <label for="income-start-date">Start Date:</label>
-                  <input type="date" id="income-start-date" required />
-
-                  <button type="submit">Add Income</button>
-                </form>
+              <!-- Expenses by Category (Bar Chart) -->
+              <h2>Expenses by Category (Bar Chart)</h2>
+              <div class="bar-chart-container reduced-space">
+                <canvas id="category-expenses-chart"></canvas>
               </div>
-            </div>
-
-            <!-- Income Entries List -->
-            <div class="collapsible-card expanded">
-              <div class="card-header">
-                <h2>Income Entries</h2>
-                <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+              <!-- Lowest Projected Balances Table -->
+              <h2>Lowest Balances by Month</h2>
+              <div class="table-responsive">
+                <table id="lowest-balances-table">
+                  <thead>
+                    <tr>
+                      <th>Month</th>
+                      <th>Date</th>
+                      <th>Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
               </div>
-              <div class="card-body">
-                <div class="table-responsive">
-                  <table id="income-list-table">
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Amount</th>
-                        <th>Frequency</th>
-                        <th>Start Date</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <!-- Rows will be added dynamically -->
-                    </tbody>
-                  </table>
-                </div>
+              <!-- Running Budget Table -->
+              <h2>Running Budget (Checking)</h2>
+              <div class="table-responsive">
+                <table id="running-budget-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Event/Bill</th>
+                      <th>Debit/Credit</th>
+                      <th>Balance</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
               </div>
-            </div>
-          </div>
-
-          <!-- Right Column -->
-          <div class="col" id="display-area">
-            <!-- Checking Account Balance Display (inserted dynamically) -->
-
-            <!-- Expenses Bar Chart -->
-            <h2>Expenses Breakdown (Total Over Projection Period)</h2>
-            <div class="bar-chart-container reduced-space">
-              <canvas id="expenses-chart"></canvas>
-            </div>
-
-            <!-- Expenses by Category (Bar Chart) -->
-            <h2>Expenses by Category (Bar Chart)</h2>
-            <div class="bar-chart-container reduced-space">
-              <canvas id="category-expenses-chart"></canvas>
-            </div>
-
-            <!-- Lowest Projected Balances Table -->
-            <h2>Lowest Balances by Month</h2>
-            <div class="table-responsive">
-              <table id="lowest-balances-table">
-                <thead>
-                  <tr>
-                    <th>Month</th>
-                    <th>Date</th>
-                    <th>Balance</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- Rows will be added dynamically -->
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Running Budget Table (Checking) -->
-            <h2>Running Budget (Checking)</h2>
-            <div class="table-responsive">
-              <table id="running-budget-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Event/Bill</th>
-                    <th>Debit/Credit</th>
-                    <th>Balance</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- Rows will be added dynamically -->
-                </tbody>
-              </table>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Footer -->
-      <footer>
-        <p>&copy; 2024 Budget App</p>
-      </footer>
+      <!-- Debt Screen (initially hidden) -->
+      <div id="debt-screen" style="display:none;">
+        <div class="container">
+          <div class="row">
+            <!-- Left Column: Debt Input Forms -->
+            <div class="col" id="debt-input-forms">
+              <!-- Add Debt Form -->
+              <div class="collapsible-card expanded">
+                <div class="card-header">
+                  <h2>Add Debt</h2>
+                  <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+                </div>
+                <div class="card-body">
+                  <form id="debt-form" class="card-form">
+                    <label for="debt-name">Debt Name:</label>
+                    <input type="text" id="debt-name" required />
+                    <label for="debt-balance">Current Balance (USD):</label>
+                    <input type="text" id="debt-balance" required />
+                    <label for="debt-total-credit">Total Credit (USD):</label>
+                    <input type="text" id="debt-total-credit" required />
+                    <label for="debt-interest-rate">Interest Rate (%):</label>
+                    <input type="text" id="debt-interest-rate" required />
+                    <label for="debt-min-payment">Minimum Payment (Monthly, USD):</label>
+                    <input type="text" id="debt-min-payment" required />
+                    <label for="debt-term">Term (months, optional):</label>
+                    <input type="number" id="debt-term" min="0" />
+                    <label for="debt-category">Category:</label>
+                    <div class="category-container">
+                      <select id="debt-category">
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Personal Loan">Personal Loan</option>
+                        <option value="Auto Loan">Auto Loan</option>
+                        <option value="Mortgage">Mortgage</option>
+                        <option value="Student Loan">Student Loan</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <button type="submit">Add Debt</button>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Debts List -->
+              <div class="collapsible-card expanded">
+                <div class="card-header">
+                  <h2>Debts List</h2>
+                  <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table id="debts-list-table">
+                      <thead>
+                        <tr>
+                          <th data-sort="name">Debt Name</th>
+                          <th data-sort="balance">Balance</th>
+                          <th data-sort="totalCredit">Total Credit</th>
+                          <th data-sort="interestRate">Interest Rate</th>
+                          <th data-sort="minPayment">Min Payment</th>
+                          <th data-sort="term">Term</th>
+                          <th data-sort="category">Category</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <!-- Populated dynamically -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Debt Dashboard -->
+            <div class="col" id="debt-dashboard-area">
+              <!-- Debt Dashboard Cards -->
+              <div id="debt-dashboard" class="dashboard-cards">
+                <!-- Generated dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
+
+    <!-- Shared Edit Modal -->
+    <div id="edit-modal" class="modal">
+      <div class="modal-content modal-form">
+        <span class="close-btn" id="close-edit-modal">&times;</span>
+        <h2 id="edit-modal-title">Edit Entry</h2>
+        <form id="edit-form">
+          <!-- Populated dynamically -->
+        </form>
+      </div>
+    </div>
 
     <!-- Link to JavaScript -->
     <script src="app.js"></script>

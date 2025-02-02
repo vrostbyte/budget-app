@@ -10,71 +10,118 @@ body {
   color: #343a40;
 }
 
-/* Header & Footer */
+/* Persistent Header */
 header {
-  position: relative;
-  padding: 0.5em 1em;
-  background-color: #f8f9fa;
-  text-align: center;
-}
-header nav {
-  position: absolute;
+  position: fixed;
+  top: 0;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  width: 100%;
+  background-color: #f8f9fa;
+  padding: 0.5em 1em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
 }
 header h1 {
   margin: 0;
   font-size: 1.5em;
+  text-align: center;
+  flex-grow: 1;
 }
-
-/* Navigation Menu Styles */
-nav ul {
+/* Left Menu */
+.left-menu {
+  position: relative;
+}
+.left-menu ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-nav li {
+.left-menu li {
   position: relative;
+  display: inline-block;
 }
-nav li a.dropbtn {
+.left-menu a.dropbtn {
   display: block;
   color: #343a40;
   padding: 8px 16px;
   text-decoration: none;
 }
-nav li a.dropbtn:hover,
-nav li a.dropbtn:focus,
-.dropdown:hover .dropbtn {
+.left-menu a.dropbtn:hover,
+.left-menu a.dropbtn:focus,
+.left-menu .dropdown:hover .dropbtn {
   background-color: #ddd;
 }
-nav li.dropdown {
-  display: inline-block;
-}
-.dropdown-content {
+.left-menu .dropdown-content {
   display: none;
   position: absolute;
   background-color: #f8f9fa;
   min-width: 160px;
-  z-index: 1;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  z-index: 1001;
 }
-.dropdown-content a {
+.left-menu .dropdown-content a {
   color: #343a40;
   padding: 12px 16px;
   text-decoration: none;
   display: block;
 }
-.dropdown-content a:hover {
+.left-menu .dropdown-content a:hover {
   background-color: #ddd;
 }
-.dropdown:hover .dropdown-content {
+.left-menu .dropdown:hover .dropdown-content {
   display: block;
 }
-.menu-icon {
-  font-size: 20px;
-  margin-right: 8px;
-  vertical-align: middle;
+/* Right Menu (Screen Switcher) */
+.right-menu {
+  position: relative;
+}
+.right-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.right-menu li {
+  position: relative;
+  display: inline-block;
+}
+.right-menu a.dropbtn {
+  display: block;
+  color: #343a40;
+  padding: 8px 16px;
+  text-decoration: none;
+}
+.right-menu a.dropbtn:hover,
+.right-menu a.dropbtn:focus,
+.right-menu .dropdown:hover .dropbtn {
+  background-color: #ddd;
+}
+.right-menu .dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: #f8f9fa;
+  min-width: 140px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  z-index: 1001;
+}
+.right-menu .dropdown-content a {
+  color: #343a40;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+.right-menu .dropdown-content a:hover {
+  background-color: #ddd;
+}
+.right-menu .dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Adjust main content to account for fixed header */
+main {
+  margin-top: 70px;
 }
 
 /* Layout Containers */
@@ -183,6 +230,7 @@ button.icon-btn:hover {
 .table-responsive th {
   background-color: #f2f2f2;
   color: #333;
+  cursor: pointer;
 }
 
 /* Conditional Formatting */
@@ -200,7 +248,7 @@ button.icon-btn:hover {
 .modal {
   display: none;
   position: fixed;
-  z-index: 1000;
+  z-index: 1002;
   left: 0;
   top: 0;
   width: 100%;
@@ -259,16 +307,35 @@ button.icon-btn:hover {
   margin: 0 auto 1em auto;
 }
 
+/* Dashboard Cards for Debt Screen */
+.dashboard-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  margin-bottom: 1em;
+}
+.dashboard-card {
+  background-color: #007bff;
+  color: #fff;
+  padding: 1em;
+  flex: 1;
+  min-width: 150px;
+  border-radius: 8px;
+  text-align: center;
+}
+.dashboard-card h3 {
+  margin: 0.5em 0;
+}
+.dashboard-card p {
+  margin: 0.2em 0;
+  font-size: 0.9em;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 600px) {
   header {
-    text-align: center;
-  }
-  header nav {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
+    flex-direction: row;
+    justify-content: space-between;
   }
   .col {
     padding: 0.5em;
