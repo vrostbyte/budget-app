@@ -143,6 +143,15 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   // =======================
+  // DOM Element Lookups (Declared Once)
+  // =======================
+  const importFileInputEl = document.getElementById("import-file");
+  const instructionsBtnEl = document.getElementById("instructions-btn");
+  const instructionsModalEl = document.getElementById("instructions-modal");
+  const closeModalEl = document.getElementById("close-modal");
+  const closeModalBtnEl = document.getElementById("close-modal-btn");
+
+  // =======================
   // Helper Functions
   // =======================
   function getCurrentDateTimeString() {
@@ -162,7 +171,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!cleaned) return 0;
     try {
       const result = new Function(`return (${cleaned});`)();
-      if (typeof result !== "number" || isNaN(result)) throw new Error("Invalid expression");
+      if (typeof result !== "number" || isNaN(result))
+        throw new Error("Invalid expression");
       return result;
     } catch (err) {
       console.warn("Failed to parse math expression:", rawValue);
@@ -759,7 +769,8 @@ document.addEventListener("DOMContentLoaded", function () {
       };
     }
     editModal.style.display = "block";
-    document.getElementById("cancel-edit-btn").addEventListener("click", function () {
+    // Use the already-declared cancel button element to add the listener once
+    closeModalBtnEl.addEventListener("click", () => {
       editModal.style.display = "none";
     });
   }
@@ -835,7 +846,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // =======================
-  // Debt Form Submission (Modified)
+  // Debt Form Submission (New Approach)
   // =======================
   document.getElementById("debt-form").addEventListener("submit", function (e) {
     e.preventDefault();
@@ -848,25 +859,25 @@ document.addEventListener("DOMContentLoaded", function () {
     const category = document.getElementById("debt-category").value;
     if (!name) {
       alert("Please enter a debt name.");
-      return;
+      return false;
     }
     debts.push({ name, balance, totalCredit, interestRate, minPayment, term, category });
     saveData();
-    // Manually clear debt form fields instead of using form.reset()
+    // Manually clear debt form fields
     document.getElementById("debt-name").value = "";
     document.getElementById("debt-balance").value = "";
     document.getElementById("debt-total-credit").value = "";
     document.getElementById("debt-interest-rate").value = "";
     document.getElementById("debt-min-payment").value = "";
     document.getElementById("debt-term").value = "";
-    // Optionally reset the category selection if desired:
-    // document.getElementById("debt-category").selectedIndex = 0;
+    document.getElementById("debt-category").selectedIndex = 0;
     renderDebtDashboard();
     renderDebtsTable();
-    // Ensure we remain on the Debt Screen
+    // Remain on the Debt Screen
     currentScreen = "debt";
     renderScreen();
     alert("Debt added successfully.");
+    return false;
   });
 
   // =======================
@@ -970,7 +981,6 @@ document.addEventListener("DOMContentLoaded", function () {
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
   });
-  const importFileInputEl = document.getElementById("import-file");
   document.getElementById("import-btn").addEventListener("click", function (e) {
     e.preventDefault();
     importFileInputEl.click();
@@ -1019,6 +1029,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateDisplay();
         renderDebtDashboard();
         renderDebtsTable();
+        renderScreen();
         alert("Data imported successfully.");
       } catch (error) {
         alert("Error importing data: Invalid file format.");
@@ -1078,10 +1089,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // =======================
   // Instructions Modal (Single Block)
   // =======================
-  const instructionsBtnEl = document.getElementById("instructions-btn");
-  const instructionsModalEl = document.getElementById("instructions-modal");
-  const closeModalEl = document.getElementById("close-modal");
-  const closeModalBtnEl = document.getElementById("close-modal-btn");
   instructionsBtnEl.addEventListener("click", function (e) {
     e.preventDefault();
     instructionsModalEl.style.display = "block";
