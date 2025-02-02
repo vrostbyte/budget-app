@@ -759,9 +759,7 @@ document.addEventListener("DOMContentLoaded", function () {
       };
     }
     editModal.style.display = "block";
-    // Attach a single event listener for cancel
-    const cancelBtn = document.getElementById("cancel-edit-btn");
-    cancelBtn.addEventListener("click", function () {
+    document.getElementById("cancel-edit-btn").addEventListener("click", function () {
       editModal.style.display = "none";
     });
   }
@@ -835,6 +833,41 @@ document.addEventListener("DOMContentLoaded", function () {
     saveData();
     updateDisplay();
   }
+
+  // =======================
+  // Debt Form Submission (Modified)
+  // =======================
+  document.getElementById("debt-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const name = document.getElementById("debt-name").value.trim();
+    const balance = parseMathExpression(document.getElementById("debt-balance").value);
+    const totalCredit = parseMathExpression(document.getElementById("debt-total-credit").value);
+    const interestRate = parseMathExpression(document.getElementById("debt-interest-rate").value);
+    const minPayment = parseMathExpression(document.getElementById("debt-min-payment").value);
+    const term = document.getElementById("debt-term").value;
+    const category = document.getElementById("debt-category").value;
+    if (!name) {
+      alert("Please enter a debt name.");
+      return;
+    }
+    debts.push({ name, balance, totalCredit, interestRate, minPayment, term, category });
+    saveData();
+    // Manually clear debt form fields instead of using form.reset()
+    document.getElementById("debt-name").value = "";
+    document.getElementById("debt-balance").value = "";
+    document.getElementById("debt-total-credit").value = "";
+    document.getElementById("debt-interest-rate").value = "";
+    document.getElementById("debt-min-payment").value = "";
+    document.getElementById("debt-term").value = "";
+    // Optionally reset the category selection if desired:
+    // document.getElementById("debt-category").selectedIndex = 0;
+    renderDebtDashboard();
+    renderDebtsTable();
+    // Ensure we remain on the Debt Screen
+    currentScreen = "debt";
+    renderScreen();
+    alert("Debt added successfully.");
+  });
 
   // =======================
   // Budget Screen Form Submissions
