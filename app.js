@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
   let expensesChart;
   let categoryExpensesChart;
 
-  // Sample data (with anonymized names)
+  // Sample data (with anonymized names and current dates)
   const sampleData = {
     "bills": [
       { "name": "Housing Payment 1", "date": 1, "amount": 2420, "category": "Housing" },
@@ -44,14 +44,14 @@ document.addEventListener('DOMContentLoaded', function () {
       { "name": "Student Loan Payment 1", "date": 5, "amount": 376, "category": "Student Loans" }
     ],
     "incomeEntries": [
-      { "name": "Income Payment 1", "amount": 1700, "frequency": "Bi-weekly", "startDate": "2024-11-20" },
-      { "name": "Income Payment 2", "amount": 2133.25, "frequency": "Bi-weekly", "startDate": "2024-12-11" }
+      { "name": "Income Payment 1", "amount": 1700, "frequency": "Bi-weekly", "startDate": "2025-12-05" },
+      { "name": "Income Payment 2", "amount": 2133.25, "frequency": "Bi-weekly", "startDate": "2025-12-12" }
     ],
     "adhocExpenses": [],
     "accountBalance": 3435.95,
     "accountName": "Sample Checking",
-    "startDate": "2025-01-30T07:00:00.000Z",
-    "projectionLength": 10,
+    "startDate": new Date().toISOString(),
+    "projectionLength": 6,
     "categories": [
       "Charity/Donations",
       "Childcare",
@@ -71,33 +71,10 @@ document.addEventListener('DOMContentLoaded', function () {
       "Travel",
       "Utilities",
       "Misc/Other",
-      "Student Loans"
+      "Student Loans",
+      "Credit Card Payment"
     ],
-    "runningBudgetAdjustments": [
-      { "date": "2024-11-28", "amount": -164, "event": "Housing Payment 2" },
-      { "date": "2024-12-01", "amount": -799.2, "event": "Childcare Payment 1" },
-      { "date": "2024-12-11", "amount": -528.73, "event": "Income Payment 2 + Housing Payment 1" },
-      { "date": "2024-12-15", "amount": -109.65, "event": "Utility Payment 2" },
-      { "date": "2025-01-05", "amount": 0, "event": "Student Loan Payment 1 (Deferred)" },
-      { "date": "2025-01-10", "amount": -2436, "event": "Subscription Payment 1 + Housing Payment 1" },
-      { "date": "2025-01-11", "amount": 0, "event": "" },
-      { "date": "2025-01-01", "amount": 0, "event": "Housing Payment 1 (Deferred) + Childcare Payment 1 (Level)" },
-      { "date": "2024-12-30", "amount": 0, "event": "---" },
-      { "date": "2024-12-28", "amount": -174, "event": "Housing Payment 2" },
-      { "date": "2025-01-15", "amount": -194.87, "event": "Utility Payment 2 + Loan Payment 1 + Income Payment 1" },
-      { "date": "2025-01-04", "amount": -799.2, "event": "Childcare Payment 1" },
-      { "date": "2025-01-09", "amount": -50, "event": "Transportation Payment 2 (Gas)" },
-      { "date": "2025-01-07", "amount": -743.84, "event": "Insurance Payment 1 + Transportation Payment 1 + Income Payment 1 Adjustment" },
-      { "date": "2025-01-12", "amount": -100, "event": "Dining Payment 1" },
-      { "date": "2025-01-17", "amount": -114.87, "event": "Utility Payment 2" },
-      { "date": "2025-02-01", "amount": -799.2, "event": "Childcare Payment 1" },
-      { "date": "2025-02-09", "amount": -2420, "event": "Housing Payment 1" },
-      { "date": "2025-03-01", "amount": -799.2, "event": "Housing Payment 1 (Deferred) + Childcare Payment 1" },
-      { "date": "2025-03-09", "amount": -2420, "event": "Housing Payment 1" },
-      { "date": "2025-01-28", "amount": 0, "event": "---" },
-      { "date": "2025-02-15", "amount": -155.76, "event": "Utility Payment 2 (Partial) + Loan Payment 1" },
-      { "date": "2025-01-29", "amount": 0, "event": "---" }
-    ]
+    "runningBudgetAdjustments": []
   };
 
   // =======================
@@ -123,6 +100,12 @@ document.addEventListener('DOMContentLoaded', function () {
   // =======================
   // Helper Functions & Data Persistence
   // =======================
+  
+  // Round to 2 decimal places to fix floating point precision issues
+  function roundToCents(value) {
+    return Math.round(value * 100) / 100;
+  }
+
   function getCurrentDateTimeString() {
     const now = new Date();
     const year = now.getFullYear();
@@ -141,10 +124,10 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
       const result = new Function(`return (${cleaned});`)();
       if (typeof result !== 'number' || isNaN(result)) throw new Error('Invalid expression');
-      return result;
+      return roundToCents(result);
     } catch (err) {
       console.warn('Failed to parse math expression:', rawValue);
-      return parseFloat(rawValue) || 0;
+      return roundToCents(parseFloat(rawValue) || 0);
     }
   }
 
@@ -209,12 +192,19 @@ document.addEventListener('DOMContentLoaded', function () {
         "Transportation",
         "Travel",
         "Utilities",
-        "Misc/Other"
+        "Misc/Other",
+        "Credit Card Payment",
+        "Student Loans"
       ];
       saveData();
     }
     if (adjustmentsData) {
       runningBudgetAdjustments = JSON.parse(adjustmentsData);
+      // Fix any existing floating point precision issues in loaded data
+      runningBudgetAdjustments = runningBudgetAdjustments.map(adj => ({
+        ...adj,
+        amount: roundToCents(adj.amount)
+      }));
     }
   }
 
@@ -303,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
 
-      let dailyNet = dailyIncome - dailyExpenses;
+      let dailyNet = roundToCents(dailyIncome - dailyExpenses);
       const adjustment = runningBudgetAdjustments.find(adj => {
         const adjDate = parseDateInput(adj.date);
         return adjDate.toDateString() === currentDate.toDateString();
@@ -313,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (adjustment) {
         if (adjustment.amount !== undefined) {
-          dailyNet = adjustment.amount;
+          dailyNet = roundToCents(adjustment.amount);
           currentBalance =
             (runningTotals.length > 0 ? runningTotals[runningTotals.length - 1].balance : accountBalance)
             + dailyNet;
@@ -324,6 +314,8 @@ document.addEventListener('DOMContentLoaded', function () {
       } else {
         currentBalance += dailyNet;
       }
+
+      currentBalance = roundToCents(currentBalance);
 
       runningTotals.push({
         date: new Date(currentDate),
@@ -342,6 +334,16 @@ document.addEventListener('DOMContentLoaded', function () {
   function renderRunningBudgetTable(runningTotals) {
     const tableBody = document.getElementById('running-budget-table').getElementsByTagName('tbody')[0];
     tableBody.innerHTML = '';
+
+    if (runningTotals.length === 0) {
+      const row = tableBody.insertRow();
+      const cell = row.insertCell(0);
+      cell.colSpan = 5;
+      cell.textContent = 'No data to display. Set a start date and add some bills or income.';
+      cell.style.textAlign = 'center';
+      cell.style.fontStyle = 'italic';
+      return;
+    }
 
     runningTotals.forEach((item, index) => {
       const row = tableBody.insertRow();
@@ -396,7 +398,14 @@ document.addEventListener('DOMContentLoaded', function () {
       case 'Bi-weekly':
         return diffDays % 14 === 0;
       case 'Monthly':
-        return incomeStartDate.getDate() === date.getDate();
+        // Handle end-of-month dates (e.g., 31st in months with fewer days)
+        const incomeDay = incomeStartDate.getDate();
+        const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+        if (incomeDay > lastDayOfMonth) {
+          // If income is set for 31st but month only has 30 days, trigger on last day
+          return date.getDate() === lastDayOfMonth;
+        }
+        return incomeDay === date.getDate();
       case 'One-time':
         return incomeStartDate.toDateString() === date.toDateString();
       default:
@@ -405,7 +414,13 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function isBillOnDate(bill, date) {
-    return bill.date === date.getDate();
+    // Handle end-of-month dates for bills too
+    const billDay = bill.date;
+    const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    if (billDay > lastDayOfMonth) {
+      return date.getDate() === lastDayOfMonth;
+    }
+    return billDay === date.getDate();
   }
 
   function isAdhocExpenseOnDate(expense, date) {
@@ -439,6 +454,16 @@ document.addEventListener('DOMContentLoaded', function () {
   function displayLowestBalancesByMonth(runningTotals) {
     const tableBody = document.getElementById('lowest-balances-table').getElementsByTagName('tbody')[0];
     tableBody.innerHTML = '';
+
+    if (runningTotals.length === 0) {
+      const row = tableBody.insertRow();
+      const cell = row.insertCell(0);
+      cell.colSpan = 3;
+      cell.textContent = 'No data available.';
+      cell.style.textAlign = 'center';
+      cell.style.fontStyle = 'italic';
+      return;
+    }
 
     const monthlyBalances = {};
     runningTotals.forEach((item) => {
@@ -478,6 +503,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const billsTableBody = document.getElementById('bills-list-table').getElementsByTagName('tbody')[0];
     billsTableBody.innerHTML = '';
 
+    if (bills.length === 0) {
+      const row = billsTableBody.insertRow();
+      const cell = row.insertCell(0);
+      cell.colSpan = 5;
+      cell.textContent = 'No bills added yet.';
+      cell.style.textAlign = 'center';
+      cell.style.fontStyle = 'italic';
+      return;
+    }
+
     bills.forEach((bill, index) => {
       const row = billsTableBody.insertRow();
       row.insertCell(0).textContent = bill.name;
@@ -512,6 +547,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const adhocExpensesTableBody = document.getElementById('adhoc-expenses-list-table').getElementsByTagName('tbody')[0];
     adhocExpensesTableBody.innerHTML = '';
 
+    if (adhocExpenses.length === 0) {
+      const row = adhocExpensesTableBody.insertRow();
+      const cell = row.insertCell(0);
+      cell.colSpan = 5;
+      cell.textContent = 'No adhoc expenses added yet.';
+      cell.style.textAlign = 'center';
+      cell.style.fontStyle = 'italic';
+      return;
+    }
+
     adhocExpenses.forEach((expense, index) => {
       const row = adhocExpensesTableBody.insertRow();
       row.insertCell(0).textContent = expense.name;
@@ -545,6 +590,16 @@ document.addEventListener('DOMContentLoaded', function () {
   function renderIncomeTable() {
     const incomeTableBody = document.getElementById('income-list-table').getElementsByTagName('tbody')[0];
     incomeTableBody.innerHTML = '';
+
+    if (incomeEntries.length === 0) {
+      const row = incomeTableBody.insertRow();
+      const cell = row.insertCell(0);
+      cell.colSpan = 5;
+      cell.textContent = 'No income entries added yet.';
+      cell.style.textAlign = 'center';
+      cell.style.fontStyle = 'italic';
+      return;
+    }
 
     incomeEntries.forEach((income, index) => {
       const row = incomeTableBody.insertRow();
@@ -595,11 +650,11 @@ document.addEventListener('DOMContentLoaded', function () {
     bills.forEach((bill) => {
       const key = bill.name;
       const months = projectionLength;
-      expenseTotals[key] = (expenseTotals[key] || 0) + bill.amount * months;
+      expenseTotals[key] = roundToCents((expenseTotals[key] || 0) + bill.amount * months);
     });
     adhocExpenses.forEach((expense) => {
       const key = expense.name;
-      expenseTotals[key] = (expenseTotals[key] || 0) + expense.amount;
+      expenseTotals[key] = roundToCents((expenseTotals[key] || 0) + expense.amount);
     });
     return expenseTotals;
   }
@@ -609,11 +664,11 @@ document.addEventListener('DOMContentLoaded', function () {
     bills.forEach((bill) => {
       const category = bill.category || 'Misc/Other';
       const months = projectionLength;
-      categoryTotals[category] = (categoryTotals[category] || 0) + bill.amount * months;
+      categoryTotals[category] = roundToCents((categoryTotals[category] || 0) + bill.amount * months);
     });
     adhocExpenses.forEach((expense) => {
       const category = expense.category || 'Misc/Other';
-      categoryTotals[category] = (categoryTotals[category] || 0) + expense.amount;
+      categoryTotals[category] = roundToCents((categoryTotals[category] || 0) + expense.amount);
     });
     return categoryTotals;
   }
@@ -623,7 +678,17 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!canvasElement) return console.error('Canvas element "expenses-chart" not found.');
     const ctx = canvasElement.getContext('2d');
     if (expensesChart) expensesChart.destroy();
-    if (data.length === 0) return console.warn('No data for expenses chart.');
+    
+    if (data.length === 0) {
+      // Draw empty state message on canvas
+      ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#666';
+      ctx.textAlign = 'center';
+      ctx.fillText('No expense data to display.', canvasElement.width / 2, canvasElement.height / 2);
+      return;
+    }
+    
     const maxExpense = Math.max(...data);
     const minExpense = Math.min(...data);
     const colors = data.map((value) => {
@@ -655,7 +720,17 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!canvasElement) return console.error('Canvas element "category-expenses-chart" not found.');
     const ctx = canvasElement.getContext('2d');
     if (categoryExpensesChart) categoryExpensesChart.destroy();
-    if (data.length === 0) return console.warn('No data for category expenses chart.');
+    
+    if (data.length === 0) {
+      // Draw empty state message on canvas
+      ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#666';
+      ctx.textAlign = 'center';
+      ctx.fillText('No category data to display.', canvasElement.width / 2, canvasElement.height / 2);
+      return;
+    }
+    
     const colors = labels.map((label, index) => `hsl(${(index * 360) / labels.length}, 70%, 50%)`);
     categoryExpensesChart = new Chart(ctx, {
       type: 'bar',
@@ -848,7 +923,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const amount = parseMathExpression(document.getElementById('edit-running-budget-amount').value);
     const event = document.getElementById('edit-running-budget-event').value;
     const adjIndex = runningBudgetAdjustments.findIndex(adj => adj.date === oldDate);
-    const adjustment = { date: newDate, amount, event };
+    const adjustment = { date: newDate, amount: roundToCents(amount), event };
     if (adjIndex >= 0) {
       runningBudgetAdjustments[adjIndex] = adjustment;
     } else {
@@ -859,8 +934,27 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function deleteEntry(event) {
-    const index = event.target.dataset.index;
-    const type = event.target.dataset.type;
+    // Use closest() to ensure we get the button element even if the icon is clicked
+    const btn = event.target.closest('button');
+    if (!btn) return;
+    const index = btn.dataset.index;
+    const type = btn.dataset.type;
+    
+    // Determine what we're deleting for the confirmation message
+    let itemName = '';
+    if (type === 'bill') {
+      itemName = bills[index].name;
+    } else if (type === 'adhocExpense') {
+      itemName = adhocExpenses[index].name;
+    } else if (type === 'income') {
+      itemName = incomeEntries[index].name;
+    }
+    
+    // Confirm before deleting
+    if (!confirm(`Are you sure you want to delete "${itemName}"?`)) {
+      return;
+    }
+    
     if (type === 'bill') {
       bills.splice(index, 1);
     } else if (type === 'adhocExpense') {
@@ -1023,9 +1117,15 @@ document.addEventListener('DOMContentLoaded', function () {
           "Transportation",
           "Travel",
           "Utilities",
-          "Misc/Other"
+          "Misc/Other",
+          "Credit Card Payment",
+          "Student Loans"
         ];
-        runningBudgetAdjustments = data.runningBudgetAdjustments || [];
+        // Fix floating point precision issues on import
+        runningBudgetAdjustments = (data.runningBudgetAdjustments || []).map(adj => ({
+          ...adj,
+          amount: roundToCents(adj.amount)
+        }));
         saveData();
         populateCategories();
         initializeStartDate();
@@ -1041,7 +1141,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.getElementById('reset-btn').addEventListener('click', function (e) {
     e.preventDefault();
-    if (confirm('Are you sure you want to reset all data?')) {
+    if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
       localStorage.clear();
       bills = [];
       incomeEntries = [];
@@ -1068,7 +1168,9 @@ document.addEventListener('DOMContentLoaded', function () {
         "Transportation",
         "Travel",
         "Utilities",
-        "Misc/Other"
+        "Misc/Other",
+        "Credit Card Payment",
+        "Student Loans"
       ];
       runningBudgetAdjustments = [];
       document.getElementById('bill-form').reset();
