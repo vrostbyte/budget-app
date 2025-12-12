@@ -376,7 +376,7 @@ A: Try importing a recent backup. If issues persist, use Reset Data and re-impor
 This project is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for details.
 
 ```
-MIT License - Copyright (c) 2024 Josh Griffith "LegendaryCue"
+MIT License - Copyright (c) 2025 "Vrostbyte"
 
 You are free to use, modify, and distribute this software.
 ```
