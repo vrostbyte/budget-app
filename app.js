@@ -1,6 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
   // =======================
-  // Global Data Variabless
+  // App Version (update this when releasing new versions)
+  // =======================
+  const APP_VERSION = '3.0.0';
+  
+  // =======================
+  // Global Data Variables
   // =======================
   let bills = [];
   let incomeEntries = [];
@@ -15,6 +20,34 @@ document.addEventListener('DOMContentLoaded', function () {
   // Chart variables
   let expensesChart;
   let categoryExpensesChart;
+
+  // =======================
+  // Error Handling & Recovery
+  // =======================
+  function handleFatalError(error, context) {
+    console.error(`Budget App Error (${context}):`, error);
+    const shouldReset = confirm(
+      `Budget App encountered an error: ${error.message}\n\n` +
+      `This may be caused by corrupted data. Would you like to reset the app?\n\n` +
+      `Click OK to reset (you'll lose your data), or Cancel to try refreshing the page.`
+    );
+    if (shouldReset) {
+      localStorage.clear();
+      location.reload();
+    }
+  }
+
+  // Check for version mismatch that might indicate stale cache
+  function checkVersionAndCache() {
+    const storedVersion = localStorage.getItem('appVersion');
+    if (storedVersion && storedVersion !== APP_VERSION) {
+      console.log(`App updated from ${storedVersion} to ${APP_VERSION}`);
+      // Version changed - data structure might have changed
+      // For now, just update the stored version
+      // Future: add migration logic here if needed
+    }
+    localStorage.setItem('appVersion', APP_VERSION);
+  }
 
   // Sample data (with anonymized names and current dates)
   const sampleData = {
@@ -154,26 +187,69 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function loadData() {
-    const billsData = localStorage.getItem('bills');
-    const incomeData = localStorage.getItem('incomeEntries');
-    const adhocExpensesData = localStorage.getItem('adhocExpenses');
-    const balanceData = localStorage.getItem('accountBalance');
-    const accountNameData = localStorage.getItem('accountName');
-    const startDateData = localStorage.getItem('startDate');
-    const projectionLengthData = localStorage.getItem('projectionLength');
-    const categoriesData = localStorage.getItem('categories');
-    const adjustmentsData = localStorage.getItem('runningBudgetAdjustments');
+    try {
+      const billsData = localStorage.getItem('bills');
+      const incomeData = localStorage.getItem('incomeEntries');
+      const adhocExpensesData = localStorage.getItem('adhocExpenses');
+      const balanceData = localStorage.getItem('accountBalance');
+      const accountNameData = localStorage.getItem('accountName');
+      const startDateData = localStorage.getItem('startDate');
+      const projectionLengthData = localStorage.getItem('projectionLength');
+      const categoriesData = localStorage.getItem('categories');
+      const adjustmentsData = localStorage.getItem('runningBudgetAdjustments');
 
-    if (billsData) bills = JSON.parse(billsData);
-    if (incomeData) incomeEntries = JSON.parse(incomeData);
-    if (adhocExpensesData) adhocExpenses = JSON.parse(adhocExpensesData);
-    if (balanceData) accountBalance = parseFloat(balanceData);
-    if (accountNameData) accountName = accountNameData;
-    if (startDateData) startDate = new Date(startDateData);
-    if (projectionLengthData) projectionLength = parseInt(projectionLengthData, 10);
-    if (categoriesData) {
-      categories = JSON.parse(categoriesData);
-    } else {
+      if (billsData) bills = JSON.parse(billsData);
+      if (incomeData) incomeEntries = JSON.parse(incomeData);
+      if (adhocExpensesData) adhocExpenses = JSON.parse(adhocExpensesData);
+      if (balanceData) accountBalance = parseFloat(balanceData);
+      if (accountNameData) accountName = accountNameData;
+      if (startDateData) startDate = new Date(startDateData);
+      if (projectionLengthData) projectionLength = parseInt(projectionLengthData, 10);
+      if (categoriesData) {
+        categories = JSON.parse(categoriesData);
+      } else {
+        categories = [
+          "Charity/Donations",
+          "Childcare",
+          "Debt Payments",
+          "Dining Out/Takeout",
+          "Education",
+          "Entertainment",
+          "Healthcare",
+          "Hobbies/Recreation",
+          "Housing",
+          "Insurance",
+          "Personal Care",
+          "Pets",
+          "Savings/Investments",
+          "Subscriptions/Memberships",
+          "Transportation",
+          "Travel",
+          "Utilities",
+          "Misc/Other",
+          "Credit Card Payment",
+          "Student Loans"
+        ];
+        saveData();
+      }
+      if (adjustmentsData) {
+        runningBudgetAdjustments = JSON.parse(adjustmentsData);
+        // Fix any existing floating point precision issues in loaded data
+        runningBudgetAdjustments = runningBudgetAdjustments.map(adj => ({
+          ...adj,
+          amount: roundToCents(adj.amount)
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading data from localStorage:', error);
+      // Reset to defaults if data is corrupted
+      bills = [];
+      incomeEntries = [];
+      adhocExpenses = [];
+      accountBalance = 0;
+      accountName = '';
+      startDate = null;
+      projectionLength = 1;
       categories = [
         "Charity/Donations",
         "Childcare",
@@ -196,24 +272,26 @@ document.addEventListener('DOMContentLoaded', function () {
         "Credit Card Payment",
         "Student Loans"
       ];
-      saveData();
-    }
-    if (adjustmentsData) {
-      runningBudgetAdjustments = JSON.parse(adjustmentsData);
-      // Fix any existing floating point precision issues in loaded data
-      runningBudgetAdjustments = runningBudgetAdjustments.map(adj => ({
-        ...adj,
-        amount: roundToCents(adj.amount)
-      }));
+      runningBudgetAdjustments = [];
+      // Don't save here - let user decide if they want to reset
+      throw new Error('Corrupted localStorage data detected');
     }
   }
 
-  // Load any saved data
-  loadData();
-  initializeStartDate();
-  populateCategories();
-  setupCollapsibleCards();
-  updateDisplay();
+  // =======================
+  // Initialize App with Error Handling
+  // =======================
+  try {
+    checkVersionAndCache();
+    loadData();
+    initializeStartDate();
+    populateCategories();
+    setupCollapsibleCards();
+    updateDisplay();
+    console.log(`Budget App v${APP_VERSION} loaded successfully`);
+  } catch (error) {
+    handleFatalError(error, 'initialization');
+  }
 
   // =======================
   // Main Display Update
