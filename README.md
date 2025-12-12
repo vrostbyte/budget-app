@@ -254,7 +254,7 @@ budget-app/
 ├── styles.css          # All styling
 ├── favicon.ico         # Browser tab icon
 ├── README.md           # This file
-├── CHANGELOG.md        # Version history
+├── CHANGELOG.md        # Version historyosh Griffith*
 ├── LICENSE.md          # MIT License
 └── .github/
     └── copilot-instructions.md  # AI coding assistant config
@@ -385,10 +385,10 @@ You are free to use, modify, and distribute this software.
 
 ## Contact
 
-**Josh Griffith** (LegendaryCue)
+**Vrostbyte** (Vrostbyte)
 
-- **Email:** jshjgriffith@gmail.com
-- **GitHub:** [@legendarycue](https://github.com/legendarycue)
+- **Email:** vrostbyte@proton.me
+- **GitHub:** [@vrostbyte](https://github.com/vrostbyte)
 
 ---
 
