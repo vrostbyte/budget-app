@@ -78,6 +78,15 @@ When adding fields to the data model:
 4. Update export handler
 5. Update import handler with fallback
 
+## Version Updates (IMPORTANT)
+When releasing changes, update version in THREE places:
+1. `app.js` - `const APP_VERSION = 'X.X.X'`
+2. `index.html` - `app.js?v=X.X.X` and `styles.css?v=X.X.X`
+3. `index.html` - Footer version display
+4. `CHANGELOG.md` - Document changes
+
+This prevents browser caching issues where old JS runs instead of new code.
+
 ## Do NOT
 - Use frameworks
 - Give partial snippets
