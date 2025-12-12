@@ -1,251 +1,406 @@
 # Budget App
 
-**Version 1.6 .0**
+![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Platform](https://img.shields.io/badge/platform-web-lightgrey.svg)
 
-**Screenshots**
+A powerful, privacy-focused budget projection tool that runs entirely in your browser. No accounts, no servers, no subscriptions—just you and your finances.
 
-<a href="https://ibb.co/9bNwvPn"><img src="https://i.ibb.co/m9GvBpJ/Screenshot-2024-12-03-at-8-26-22-PM.png" alt="Screenshot-2024-12-03-at-8-26-22-PM" border="0"></a>
-<a href="https://ibb.co/B3M2zg4"><img src="https://i.ibb.co/Khvx09N/Screenshot-2024-12-03-at-8-26-36-PM.png" alt="Screenshot-2024-12-03-at-8-26-36-PM" border="0"></a>
-<a href="https://ibb.co/6wWhSph"><img src="https://i.ibb.co/bmKhVyh/Screenshot-2024-12-03-at-8-26-46-PM.png" alt="Screenshot-2024-12-03-at-8-26-46-PM" border="0"></a>
+## Screenshots
+
+<p align="center">
+  <img src="https://i.ibb.co/m9GvBpJ/Screenshot-2024-12-03-at-8-26-22-PM.png" alt="Dashboard View" width="280"/>
+  <img src="https://i.ibb.co/Khvx09N/Screenshot-2024-12-03-at-8-26-36-PM.png" alt="Bills Management" width="280"/>
+  <img src="https://i.ibb.co/bmKhVyh/Screenshot-2024-12-03-at-8-26-46-PM.png" alt="Running Budget" width="280"/>
+</p>
+
+---
 
 ## Table of Contents
 
--   [Description](#description)
--   [Features](#features)
--   [Technologies Used](#technologies-used)
--   [Installation](#installation)
--   [Usage](#usage)
--   [Contributing](#contributing)
--   [License](#license)
--   [Changelog](#changelog)
--   [Contact](#contact)
--   [Acknowledgments](#acknowledgments)
--   [FAQ](#faq)
+- [Why Budget App?](#why-budget-app)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [User Guide](#user-guide)
+- [Data Management](#data-management)
+- [Technical Details](#technical-details)
+- [Contributing](#contributing)
+- [Roadmap](#roadmap)
+- [FAQ](#faq)
+- [License](#license)
+- [Contact](#contact)
 
-## Description
+---
 
-Budget App is a comprehensive web application designed to help users manage their finances effectively. Whether you're tracking your daily expenses, managing recurring bills, planning your income, or contributing to savings goals, Budget App provides an intuitive interface to keep your finances organized and under control. With features like dynamic charts, data export/import, and responsive design, Budget App caters to both personal and professional budgeting needs.
+## Why Budget App?
+
+Most budgeting apps want your data on their servers, charge monthly fees, or require account creation. Budget App is different:
+
+| Feature | Budget App | Typical Apps |
+|---------|-----------|--------------|
+| **Cost** | Free forever | $5-15/month |
+| **Privacy** | 100% local storage | Cloud-based |
+| **Account Required** | No | Yes |
+| **Internet Required** | No (after download) | Yes |
+| **Data Ownership** | You own it all | They own it |
+| **Ads** | None | Often yes |
+
+Your financial data never leaves your device. Export it, back it up, delete it—you're in complete control.
+
+---
 
 ## Features
 
--   **Set Budget Projection**  
-    Define the start date and projection length (up to 12 months) for your budget.
+### Core Budgeting
+- **Budget Projections** — See your finances up to 12 months ahead
+- **Running Balance** — Day-by-day breakdown of every transaction
+- **Lowest Balance Alerts** — Identify cash flow danger zones by month
+- **Multi-frequency Income** — Weekly, bi-weekly, monthly, or one-time income sources
 
--   **Account Balance Management**  
-    Input and update your checking account balance with custom account names.
+### Expense Management
+- **Recurring Bills** — Set it once, tracked every month automatically
+- **Ad-hoc Expenses** — One-time purchases on specific dates
+- **Custom Categories** — Create categories that match your life
+- **Inline Editing** — Click to edit any entry directly
 
--   **Add Recurring Bills/Expenses**  
-    Manage monthly recurring expenses with customizable categories.
+### Smart Features
+- **Math Expressions** — Enter `1500+250` or `2000-150` in any amount field
+- **Running Budget Adjustments** — Override calculated values for real-world scenarios
+- **End-of-Month Handling** — Bills set for the 31st auto-adjust for shorter months
 
--   **Add Adhoc Expenses**  
-    Record one-time expenses and create custom categories for flexibility.
+### Visualization
+- **Expenses Breakdown Chart** — See where your money goes
+- **Category Analysis** — Spending patterns by category
+- **Color-Coded Balances** — Green (safe), orange (caution), red (danger)
 
--   **Add Income Sources**  
-    Track various income streams with different frequencies (Weekly, Bi-weekly, Monthly, or One-time).
+### Data Control
+- **JSON Export** — Full backup with one click
+- **JSON Import** — Restore or transfer data instantly
+- **Sample Data** — Try the app without entering real data
+- **Complete Reset** — Start fresh anytime
 
--   **Running Budget**  
-    View a daily breakdown of your finances with events, debits/credits, and balances.
+### User Experience
+- **Mobile Responsive** — Works on phone, tablet, and desktop
+- **Collapsible Sections** — Minimize clutter, focus on what matters
+- **Print Friendly** — Clean printouts for offline reference
+- **No Loading Screens** — Instant, snappy performance
 
--   **Running Budget Row Editing**  
-    Edit individual entries in the Running Budget table directly from the interface, including date, amount, and event description.
+---
 
--   **Savings Accounts & Contributions**  
-    - Create one or more savings accounts with optional savings goals.  
-    - Schedule recurring or one-time contributions from Checking to Savings.  
-    - Collapse/expand a day-by-day savings balance table to track goal progress.
+## Quick Start
 
--   **Visual Analytics**  
-    - **Expenses Breakdown Bar Chart**: Visualize total expenses over the projection period.  
-    - **Expenses by Category Bar Chart**: Analyze spending habits by category.
+### Option 1: Download and Run
+```bash
+git clone https://github.com/legendarycue/budget-app.git
+cd budget-app
+open index.html
+```
 
--   **Lowest Balances by Month**  
-    Identify potential cash flow issues with monthly lowest balance reports.
+### Option 2: Direct Download
+1. Download the [latest release](https://github.com/legendarycue/budget-app/releases)
+2. Extract the ZIP file
+3. Double-click `index.html`
 
--   **Data Export/Import**  
-    Save your financial data as a JSON or CSV file and load it back when needed.
+That's it. No installation, no dependencies, no build process.
 
--   **Reset Data**  
-    Clear all data to start fresh, ensuring data privacy and control.
+---
 
--   **Responsive Design**  
-    Accessible on desktop, tablet, and mobile devices for on-the-go budgeting.
+## User Guide
 
--   **User-Friendly Interface**  
-    Intuitive forms and tables for easy data entry and management.
+### 1. Set Your Projection Window
 
--   **Custom Category Management**  
-    Add, edit, and delete categories for both recurring and adhoc expenses.
+Start by defining when to begin tracking and how far ahead to project:
 
-## Technologies Used
+1. Open **Start Date and Projection Length**
+2. Select your start date (today or a future date)
+3. Choose projection length (1-12 months)
+4. Click **Set Start Date**
 
--   **HTML5** – Structure and layout of the application.
--   **CSS3** – Styling and responsive design.
--   **JavaScript (ES6)** – Functionality and interactivity.
--   **Chart.js** – Data visualization through dynamic charts.
--   **LocalStorage** – Data persistence in the browser.
--   **OpenAI ChatGPT** – Assistance in developing and enhancing the application.
+### 2. Enter Your Account Balance
 
-## Installation
+Set your starting point:
 
-1. **Clone the Repository**  
-   ~~~bash
-   git clone https://github.com/yourusername/budget-app.git
-   ~~~
+1. Open **Checking Account Balance**
+2. Optionally name your account (e.g., "Bills Checking")
+3. Enter your current balance
+4. Click **Update Checking**
 
-2. **Navigate to Project Directory**  
-   ~~~bash
-   cd budget-app
-   ~~~
+> **Tip:** You can use math expressions! Enter `1500+237.50` and it calculates automatically.
 
-3. **Open the Application**  
-   - **Option 1:** Double-click the `index.html` file.
-   - **Option 2:** Use the terminal:
-     
-     - **macOS:** `open index.html`  
-     - **Windows:** `start index.html`  
-     - **Linux:** `xdg-open index.html`
+### 3. Add Recurring Bills
 
-## Usage
+These are expenses that repeat every month:
 
-1. **Set Budget Projection**  
-   - **Locate "Set Budget Projection":**  
-     In the left column, find the "Start Date and Projection Length" form.  
-   - **Select Start Date:**  
-     Use the date picker to choose your budget’s start date.  
-   - **Enter Projection Length (Months):**  
-     Input how many months (up to 12) you want to project.  
-   - **Save Settings:**  
-     Click "Set Start Date" to confirm.
+1. Open **Add Bill/Expense**
+2. Enter the bill name (e.g., "Mortgage")
+3. Set the day of month it's due (1-31)
+4. Enter the amount
+5. Select or create a category
+6. Click **Add Bill**
 
-2. **Manage Account Balance**  
-   - **Locate "Checking Account Balance":**  
-     Below the projection form, find the account balance form.  
-   - **Enter Account Details:**  
-     - **Account Name** (e.g., "Bills Checking").  
-     - **Current Balance** in USD.  
-   - **Update Balance:**  
-     Click "Update Checking" to store your current balance.
+### 4. Add Income Sources
 
-3. **Add Recurring Bills/Expenses**  
-   - **Add Bill/Expense Form:**  
-     - **Bill Name**: Name of the recurring bill/expense (e.g., "Mortgage").  
-     - **Day of Month** (1–31).  
-     - **Amount (USD)** and **Category**.  
-   - **Save Bill:**  
-     Click "Add Bill" to record a monthly recurring expense.
+Track money coming in:
 
-4. **Add Adhoc Expenses**  
-   - **Add Adhoc Expense Form:**  
-     - **Expense Name**, **Date**, **Amount (USD)**, and **Category**.  
-   - **Add Category (Optional):**  
-     Click "Add Category" to create a custom category if needed.  
-   - **Save Expense:**  
-     Click "Add Adhoc Expense" to record the one-time expense.
+1. Open **Add Income**
+2. Enter income name (e.g., "Paycheck")
+3. Enter amount per payment
+4. Select frequency:
+   - **Weekly** — Every 7 days
+   - **Bi-weekly** — Every 14 days (most common for paychecks)
+   - **Monthly** — Same date each month
+   - **One-time** — Single occurrence
+5. Set the start date (your next payday)
+6. Click **Add Income**
 
-5. **Add Income Sources**  
-   - **Add Income Form:**  
-     - **Income Name** (e.g., "Payroll").  
-     - **Amount per Paycheck**.  
-     - **Frequency** (Weekly, Bi-weekly, Monthly, or One-time).  
-     - **Start Date**.  
-   - **Save Income:**  
-     Click "Add Income" to store the new income entry.
+### 5. Add One-Time Expenses
 
-6. **View and Manage Entries**  
-   - **Review Bills, Adhoc Expenses, and Income:**  
-     Check the respective tables in the left column to see recorded data.  
-   - **Edit or Delete:**  
-     Click "Edit" or "Delete" beside any entry to modify or remove it.
+For non-recurring purchases:
 
-7. **Running Budget Row Editing**  
-   - **Locate "Running Budget" Table:**  
-     In the right column, find the daily breakdown of your budget.  
-   - **Edit Running Budget Entries:**  
-     - Click the "Edit" button to open a modal where you can update the date, amount (Debit/Credit), and event description.  
-     - Confirm changes with "Update Entry."
+1. Open **Add Adhoc Expense**
+2. Enter expense name
+3. Select the specific date
+4. Enter amount and category
+5. Click **Add Adhoc Expense**
 
-8. **Savings Accounts & Contributions**  
-   - **Add Savings Account:**  
-     - Enter a name, balance, and optional goal amount.  
-     - Click "Add Savings Account."  
-   - **Add Savings Contributions:**  
-     - Choose a savings account, specify an amount and frequency.  
-     - Save to schedule one-time or recurring contributions from Checking to Savings.  
-   - **Collapsible Day-by-Day Balances:**  
-     - Expand or collapse the savings balances table to see daily changes and goal progress.
+### 6. Review Your Projection
 
-9. **Visual Analytics**  
-   - **Expenses Breakdown Bar Chart:**  
-     Shows the total expenses over your chosen projection period.  
-   - **Expenses by Category Bar Chart:**  
-     Presents spending distribution across different categories.
+The right side of the screen shows:
 
-10. **Lowest Balances by Month**  
-    - **Locate the "Lowest Balances by Month" Table:**  
-      Quickly spot months with potentially low or negative balances.
+- **Expenses Breakdown** — Total spending per expense over the projection
+- **Expenses by Category** — Where your money goes by type
+- **Lowest Balances by Month** — Your tightest cash flow days
+- **Running Budget** — Day-by-day transaction log with running balance
 
-11. **Data Export/Import**  
-    - **Export (JSON or CSV):**  
-      Click the respective export option in the menu to download your financial data.  
-    - **Import Data:**  
-      Choose "Import Data" from the menu to load a previously exported JSON file.
+### 7. Make Adjustments
 
-12. **Reset Data**  
-    - **Clear All Data:**  
-      Select "Reset Data" from the menu to erase all stored information and start fresh.
+Real life doesn't match predictions. Use the **Edit** button on any Running Budget row to:
+
+- Override the calculated amount for that day
+- Add notes explaining the adjustment
+- Handle deferrals, partial payments, or windfalls
+
+---
+
+## Data Management
+
+### Backing Up Your Data
+
+**Do this regularly!** Your data lives only in your browser.
+
+1. Click **Menu → Export Data (JSON)**
+2. Save the file somewhere safe (cloud storage recommended)
+3. File is named `budget_data_YYYYMMDD_HHMMSS.json`
+
+### Restoring Data
+
+1. Click **Menu → Import Data**
+2. Select your backup JSON file
+3. Data loads immediately
+
+### Transferring Between Devices
+
+1. Export from Device A
+2. Transfer the JSON file (email, cloud, USB)
+3. Import on Device B
+
+### Starting Fresh
+
+1. Click **Menu → Reset Data**
+2. Confirm the reset
+3. All data is permanently deleted
+
+> **Warning:** Reset cannot be undone. Export first if you might want the data later.
+
+---
+
+## Technical Details
+
+### Built With
+
+| Technology | Purpose |
+|------------|---------|
+| HTML5 | Structure |
+| CSS3 | Styling & Responsiveness |
+| JavaScript (ES6) | Application Logic |
+| Chart.js | Data Visualization |
+| localStorage | Data Persistence |
+| Font Awesome | Icons |
+
+### Browser Support
+
+| Browser | Supported |
+|---------|-----------|
+| Chrome | ✅ |
+| Firefox | ✅ |
+| Safari | ✅ |
+| Edge | ✅ |
+| Opera | ✅ |
+| IE11 | ❌ |
+
+### Data Storage
+
+- All data stored in browser `localStorage`
+- Storage limit: ~5-10MB (browser dependent)
+- Data persists until cleared or browser data is deleted
+- No data sent to external servers
+
+### File Structure
+
+```
+budget-app/
+├── index.html          # Main application page
+├── app.js              # Application logic (~1000 lines)
+├── styles.css          # All styling
+├── favicon.ico         # Browser tab icon
+├── README.md           # This file
+├── CHANGELOG.md        # Version history
+├── LICENSE.md          # MIT License
+└── .github/
+    └── copilot-instructions.md  # AI coding assistant config
+```
+
+---
 
 ## Contributing
 
-Contributions are welcome! Please follow these steps to contribute to the project:
+Contributions are welcome! Here's how:
 
-1. **Fork the Repository**  
-2. **Create a Feature Branch**  
-   ~~~bash
-   git checkout -b feature/YourFeatureName
-   ~~~
-3. **Commit Your Changes**  
-   ~~~bash
-   git commit -m "Add Your Feature"
-   ~~~
-4. **Push to the Branch**  
-   ~~~bash
-   git push origin feature/YourFeatureName
-   ~~~
-5. **Open a Pull Request**
+### Reporting Bugs
 
-Please ensure your code adheres to the project's coding standards and includes appropriate documentation.
+1. Check [existing issues](https://github.com/legendarycue/budget-app/issues) first
+2. Create a new issue with:
+   - Clear description of the bug
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Browser and OS information
 
-## License
+### Suggesting Features
 
-This project is licensed under the [MIT License](https://github.com/legendarycue/budget-app/blob/main/LICENSE.md).
+1. Open an issue with the `enhancement` label
+2. Describe the feature and its benefit
+3. Include mockups or examples if possible
 
-## Changelog
+### Submitting Code
 
-See the [Changelog](#changelog) for all updates and changes.
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Make your changes
+4. Test thoroughly
+5. Commit with clear messages: `git commit -m "Add: description of change"`
+6. Push to your fork: `git push origin feature/your-feature-name`
+7. Open a Pull Request
 
-## Contact
+### Code Standards
 
--   **Your Name**
--   **Email:** jshjgriffith@gmail.com
--   **GitHub:** [legendarycue](https://github.com/legendarycue)
+- No frameworks—keep it vanilla JS
+- Mobile-first responsive design
+- Clear comments for complex logic
+- Update CHANGELOG.md for any changes
+- Test on Chrome, Firefox, and Safari minimum
 
-## Acknowledgments
+---
 
--   Thanks to all contributors and users who help improve the Budget App.
--   Inspired by the need for effective personal finance management tools.
+## Roadmap
+
+### Under Consideration
+
+- [ ] Multiple checking accounts
+- [ ] Savings account tracking with goals
+- [ ] CSV export for spreadsheet users
+- [ ] Dark mode
+- [ ] Recurring expense templates
+- [ ] Budget vs actual comparison
+- [ ] Bill reminder notifications (with permission)
+
+### Not Planned
+
+- ❌ User accounts or cloud sync (privacy-first philosophy)
+- ❌ Bank connections or imports (security concern)
+- ❌ Ads or premium tiers (free forever)
+
+Have a feature idea? [Open an issue](https://github.com/legendarycue/budget-app/issues)!
+
+---
 
 ## FAQ
 
-**Q: How do I reset all my data?**  
-A: Click on "Reset Data" in the menu. Please note that this will clear all your stored information and cannot be undone.
+### General
 
-**Q: Can I export my data to use in other applications?**  
-A: Yes, you can export your data in JSON or CSV formats using the export options in the menu.
+**Q: Is my data really private?**  
+A: Yes. Budget App runs entirely in your browser. No servers, no analytics, no tracking. Your data literally cannot leave your device unless you export it yourself.
 
-**Q: How do I add a new expense category?**  
-A: Use the "Add Category" button in either the Bills or Adhoc Expenses forms to create a new custom category.
+**Q: What happens if I clear my browser data?**  
+A: Your budget data will be deleted. Always export backups before clearing browser data.
 
-**Q: Is my data secure?**  
-A: Your data is stored locally in your browser’s `localStorage` and is not transmitted to any external servers.
+**Q: Can I use this offline?**  
+A: Yes! After the initial page load, everything works offline. The only external resources are Chart.js and Font Awesome (icons), which browsers typically cache.
 
-If you have any other questions, feel free to contact me through the [Contact](#contact) section.
+### Data
+
+**Q: How do I move my data to a new computer?**  
+A: Export your data as JSON, transfer the file to your new computer, then import it.
+
+**Q: Why won't my file import?**  
+A: Ensure it's a valid JSON file exported from Budget App. The filename doesn't matter—only the contents.
+
+**Q: Is there a size limit?**  
+A: Browser localStorage is typically 5-10MB. That's enough for years of budget data.
+
+### Features
+
+**Q: Can I track multiple bank accounts?**  
+A: Currently, Budget App tracks one checking account. Multiple accounts are on the roadmap.
+
+**Q: Why don't my bills appear on the right dates?**  
+A: Check that your projection start date is before the bill dates. Bills only show within your projection window.
+
+**Q: What if my bill is due on the 31st but the month only has 30 days?**  
+A: Budget App automatically adjusts—the bill will appear on the last day of that month.
+
+### Troubleshooting
+
+**Q: The app isn't saving my changes!**  
+A: Check if you're in a private/incognito window. localStorage is often disabled in private browsing.
+
+**Q: Charts aren't displaying!**  
+A: Ensure JavaScript is enabled and try refreshing. If using an ad blocker, it may be blocking Chart.js.
+
+**Q: Something broke after an update!**  
+A: Try importing a recent backup. If issues persist, use Reset Data and re-import.
+
+---
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for details.
+
+```
+MIT License - Copyright (c) 2024 Josh Griffith "LegendaryCue"
+
+You are free to use, modify, and distribute this software.
+```
+
+---
+
+## Contact
+
+**Josh Griffith** (LegendaryCue)
+
+- **Email:** jshjgriffith@gmail.com
+- **GitHub:** [@legendarycue](https://github.com/legendarycue)
+
+---
+
+## Acknowledgments
+
+- [Chart.js](https://www.chartjs.org/) — Beautiful, flexible charting
+- [Font Awesome](https://fontawesome.com/) — Quality iconography
+- Everyone who's provided feedback and bug reports
+
+---
+
+<p align="center">
+  <strong>Budget App</strong> — Take control of your finances, privately.<br>
+  Made with ☕ in Phoenix, AZ
+</p>
