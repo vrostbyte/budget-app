@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   // =======================
-  // Global Data Variables
+  // Global Data Variabless
   // =======================
   let bills = [];
   let incomeEntries = [];
