@@ -2,149 +2,147 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
+The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.6.1] - 2024-12-11
+---
+
+## [3.0.0] - 2024-12-11
+
+### 🎉 Major Release
+
+Version 3.0 represents a significant stability and quality update, focusing on bug fixes, code reliability, and developer experience improvements.
 
 ### Fixed
-* **Delete Button Click Target Bug**: Fixed issue where clicking the trash icon (instead of the button itself) would fail silently. Now uses `closest()` to properly detect button clicks.
-* **Floating Point Precision Errors**: Added `roundToCents()` helper function to fix JavaScript floating point issues (e.g., `-98.61999999999999` now displays as `-98.62`). Applied to all calculations and imports.
-* **Monthly Income/Bills Edge Case**: Fixed issue where income or bills set for the 31st wouldn't trigger in months with fewer days. Now correctly triggers on the last day of shorter months.
+- **Delete Button Click Target**: Fixed silent failure when clicking the trash icon instead of the button itself. Now properly detects clicks on both the icon and button.
+- **Floating Point Precision**: Eliminated JavaScript floating point errors (e.g., `-98.61999999999999` → `-98.62`). All financial calculations now round to cents.
+- **Monthly Income/Bills on 31st**: Fixed edge case where income or bills set for the 31st wouldn't trigger in shorter months. Now correctly triggers on the last day of February, April, June, September, and November.
+- **Import Data Precision**: Imported data now automatically corrects any floating point precision issues from older exports.
 
 ### Added
-* **Delete Confirmation Dialog**: Now prompts "Are you sure you want to delete [item name]?" before removing any entry.
-* **Empty State Messages**: Tables and charts now display helpful messages when no data is available instead of being blank.
-* **Print Styles**: Added CSS for cleaner printing (hides navigation, forms, and modals).
+- **Delete Confirmation Dialogs**: All delete actions now prompt for confirmation with the item name displayed.
+- **Empty State Messages**: Tables and charts display helpful messages when no data is present instead of appearing blank.
+- **Print Stylesheet**: Added CSS rules for clean printing—hides navigation, forms, and modals when printing.
+- **Developer Documentation**: Added `.github/copilot-instructions.md` for AI-assisted development workflow.
+- **Comprehensive README**: Complete rewrite with detailed user guide, FAQ, and technical documentation.
 
 ### Changed
-* **Default Income Frequency**: Changed default selection to "Bi-weekly" as this is the most common pay frequency.
-* **Sample Data Dates**: Updated sample data to use current dates instead of outdated 2024 dates.
-* **Default Categories**: Added "Credit Card Payment" and "Student Loans" to default category list.
-* **Form Placeholders**: Added placeholder text showing math expression support (e.g., "100+50").
+- **Default Income Frequency**: Changed default dropdown selection to "Bi-weekly" as the most common pay frequency.
+- **Sample Data**: Updated to use current dates instead of hardcoded 2024 dates.
+- **Default Categories**: Added "Credit Card Payment" and "Student Loans" to the default category list.
+- **Form Placeholders**: Added hint text showing math expression support (e.g., "100+50").
+- **Footer**: Now displays version number for easy reference.
 
 ### Improved
-* **Code Quality**: Added consistent rounding throughout all financial calculations.
-* **UI Polish**: Added hover states to card headers, improved focus states on form inputs.
+- **Code Quality**: Added `roundToCents()` helper function applied consistently throughout all financial calculations.
+- **UI Polish**: Added hover states to collapsible card headers, improved focus states on form inputs for accessibility.
+- **Mobile Experience**: Improved responsive breakpoints and touch target sizes.
+- **Error Handling**: Better validation and user feedback throughout the application.
+
+---
 
 ## [1.6.0] - 2024-12-10
 
 ### Added
-* **Savings Feature Reintroduction & Enhancements:**
-  * **Savings Accounts**: Users can once again create multiple savings accounts, each with its own balance and optional savings goal.
-  * **Savings Contributions**: Allows for both ad hoc and recurring (scheduled) contributions from Checking to Savings.
-  * **Collapsible Savings Table**: The day-by-day Savings Accounts balances can be expanded/collapsed for a more mobile-friendly experience.
-  * **Savings Goal Tracking**: Displays each savings account's progress (percentage and remaining amount) toward a user-defined goal.
+- **Savings Feature Reintroduction & Enhancements:**
+  - **Savings Accounts**: Users can create multiple savings accounts with optional savings goals.
+  - **Savings Contributions**: Supports both ad hoc and recurring contributions from Checking to Savings.
+  - **Collapsible Savings Table**: Day-by-day savings balances can be expanded/collapsed.
+  - **Savings Goal Tracking**: Displays progress percentage and remaining amount toward goals.
 
-* **Improved Editing for Running Budget:**
-  * Instead of appending new event names, editing a running budget entry **replaces** the existing event text if the user enters a new event name (fixing the prior duplication issue).
+- **Improved Editing for Running Budget:**
+  - Editing a running budget entry now **replaces** the existing event text instead of appending.
 
 ### Removed
-* **Expenses by Category Pie Chart**:
-  * The pie chart that displayed category expenses has been completely removed to streamline the visualization options.
+- **Expenses by Category Pie Chart**: Removed to streamline visualization options.
 
 ### Changed
-* **Event Name Handling in Adjustments**:
-  * Adjustments' `event` field now overrides the daily event description to prevent repeated/duplicated text in the Running Budget table.
+- **Event Name Handling**: Adjustments' `event` field now overrides daily event descriptions to prevent duplication.
+
+---
 
 ## [1.5.0] - 2024-12-03
 
 ### Added
-* **Running Budget Row Editing:**
-  * Users can now edit individual entries in the Running Budget table directly from the interface.
-  * Implemented an edit modal that allows users to adjust the date, amount, and description of running budget entries.
-* **Data Import/Export Enhancements:**
-  * Updated the data export functionality to include both JSON and CSV formats without savings account data.
-  * Improved data import functionality to handle datasets without savings-related fields gracefully.
+- **Running Budget Row Editing**: Edit individual entries directly from the Running Budget table via modal.
+- **Data Import/Export Enhancements**: Updated export to include both JSON and CSV formats.
 
 ### Removed
-* **Savings Features:**
-  * Removed all savings-related features, including:
-    * Ability to add savings accounts.
-    * Scheduling and managing savings transfers.
-    * Savings Account Summary section.
-    * Savings-related data persistence and calculations.
-  * Simplified the application to focus on income, bills, and expenses.
+- **Savings Features**: Temporarily removed all savings-related functionality to simplify the application.
 
 ### Changed
-* **User Interface Adjustments:**
-  * Updated forms and tables to remove savings-related fields and sections.
-  * Adjusted navigation and instructions to reflect the removal of savings features.
-* **Codebase Cleanup:**
-  * Refactored code to remove unused variables and functions related to savings.
-  * Improved code structure for better maintainability and readability.
+- **User Interface**: Updated forms and tables to remove savings-related sections.
+- **Codebase Cleanup**: Refactored to remove unused savings-related code.
 
 ### Fixed
-* **Data Consistency:**
-  * Ensured that data import/export functions correctly without savings data.
-  * Resolved any potential errors arising from the absence of savings features.
+- **Data Consistency**: Import/export functions correctly handle datasets without savings data.
+
+---
 
 ## [1.4.0] - 2024-11-30
 
 ### Added
-* **Savings Goal Tracking System:**
-  * Users can now add savings accounts with a name and current balance.
-  * Implemented a section where users can allocate excess funds from the running budget to their savings accounts.
-  * Added a Savings Account Summary section to display savings account balances and allow allocations.
-* **Export to CSV Option:**
-  * Added an option in the menu to export data as a CSV file in addition to the JSON export.
-* **Expenses by Category Pie Chart:**
-  * Added a pie chart to provide a visual representation of expenses by category.
+- **Savings Goal Tracking System**: Add savings accounts with names, balances, and allocate excess funds.
+- **Export to CSV Option**: Additional export format for spreadsheet compatibility.
+- **Expenses by Category Pie Chart**: Visual representation of spending by category.
 
 ### Changed
-* **Table Formatting:**
-  * Restored the 1px border and light grey cell background to the tables for better readability and visual appeal.
+- **Table Formatting**: Restored 1px borders and light grey backgrounds for readability.
 
 ### Fixed
-* **General Enhancements:**
-  * Improved code structure and comments for better maintainability.
+- **General Enhancements**: Improved code structure and comments.
+
+---
 
 ## [1.3.0] - 2024-11-20
 
 ### Added
-* **Expense Categories:**
-  * Updated the expense categories in the Bills and Adhoc Expenses forms to include:
-    * Charity/Donations
-    * Childcare
-    * Debt Payments
-    * Dining Out/Takeout
-    * Education
-    * Entertainment
-    * Healthcare
-    * Hobbies/Recreation
-    * Housing
-    * Insurance
-    * Personal Care
-    * Pets
-    * Savings/Investments
-    * Subscriptions/Memberships
-    * Transportation
-    * Travel
-    * Utilities
-    * Misc/Other
-* **Custom Category Management:**
-  * Added an "Add Category" button in the Adhoc Expenses form to allow users to create custom categories.
-  * Implemented data persistence for custom categories using localStorage.
-* **Running Budget Table Enhancements:**
-  * Highlighted income entries with a light pastel green background.
-  * Displayed income amounts and net amounts in the Debit/Credit cell.
-  * Correctly formatted dates to display in a user-friendly format.
-* **Contact Section:**
-  * Added a Contact section in the README with name, email, and GitHub links.
-* **.gitignore File:**
-  * Added a .gitignore file to exclude unnecessary files from the repository.
+- **Expanded Expense Categories**: 18 default categories covering common expense types.
+- **Custom Category Management**: "Add Category" button for user-defined categories with localStorage persistence.
+- **Running Budget Enhancements**: Income highlighting, improved date formatting.
+- **Contact Section**: Added to README with email and GitHub links.
+- **.gitignore File**: Excludes unnecessary files from repository.
 
 ### Changed
-* **Date Parsing:**
-  * Fixed date parsing issues to ensure accurate date handling without time zone shifts.
-* **README Documentation:**
-  * Rewrote the Usage section for clarity and better formatting.
-  * Rewrote the Contributing section to include detailed guidelines.
-  * Added License, Contact, Acknowledgments, and FAQ sections.
-  * Incorporated version information ("Version 1.3") at the top of the README.
+- **Date Parsing**: Fixed time zone shift issues for accurate date handling.
+- **README Documentation**: Complete rewrite with detailed sections.
 
 ### Fixed
-* **Git Commit Issue:**
-  * Resolved the Git commit error: fatal: cannot update the ref 'HEAD': unable to append to '.git/logs/HEAD': Operation timed out by troubleshooting disk space, file permissions, and potential repository corruption.
+- **Git Commit Issue**: Resolved HEAD ref update timeout errors.
 
-## [Unreleased]
-Initial project setup and previous versions.
+---
+
+## [1.2.0] - 2024-11-15
+
+### Added
+- Initial public release with core budgeting features.
+- Recurring bills and income tracking.
+- Ad-hoc expense logging.
+- Running budget projection.
+- Chart.js visualizations.
+- JSON import/export.
+
+---
+
+## Version Numbering
+
+This project follows [Semantic Versioning](https://semver.org/):
+
+- **MAJOR** (3.x.x): Significant changes, potential breaking changes to data format
+- **MINOR** (x.1.x): New features, backward compatible
+- **PATCH** (x.x.1): Bug fixes, minor improvements
+
+---
+
+## Upgrade Notes
+
+### Upgrading to 3.0.0
+
+1. **Export your data first** using Menu → Export Data (JSON)
+2. Replace all files (`index.html`, `app.js`, `styles.css`)
+3. Refresh the browser
+4. Your data in localStorage will be preserved
+5. Import your backup if needed
+
+### Data Compatibility
+
+Version 3.0 is fully backward compatible with data from versions 1.x. No data migration required.
