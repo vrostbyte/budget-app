@@ -28,6 +28,15 @@ header h1 {
   font-size: 1.5em;
 }
 
+footer {
+  text-align: center;
+  padding: 1em;
+  background-color: #f8f9fa;
+  margin-top: 2em;
+  font-size: 0.9em;
+  color: #666;
+}
+
 /* Navigation Menu Styles */
 nav ul {
   list-style: none;
@@ -106,6 +115,10 @@ nav li.dropdown {
   padding: 1em;
   background-color: #f2f2f2;
   cursor: pointer;
+  user-select: none;
+}
+.card-header:hover {
+  background-color: #e9e9e9;
 }
 .card-header h2 {
   margin: 0;
@@ -128,6 +141,7 @@ nav li.dropdown {
 }
 .card-form label {
   margin-top: 0.5em;
+  font-weight: 500;
 }
 .card-form input,
 .card-form select,
@@ -135,6 +149,11 @@ nav li.dropdown {
   margin-top: 0.5em;
   padding: 0.5em;
   font-size: 1em;
+}
+.card-form input:focus,
+.card-form select:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 1px;
 }
 .card-form button {
   background-color: #007bff;
@@ -148,6 +167,23 @@ nav li.dropdown {
   background-color: #0056b3;
 }
 
+/* Category Container */
+.category-container {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+  margin-top: 0.5em;
+}
+.category-container select {
+  flex: 1;
+  margin-top: 0;
+}
+.category-container button {
+  margin-top: 0;
+  padding: 0.5em 1em;
+  white-space: nowrap;
+}
+
 /* Icon Buttons for Edit/Delete */
 button.icon-btn {
   background: transparent;
@@ -157,9 +193,15 @@ button.icon-btn {
   padding: 0.3em;
   margin: 0 0.2em;
   color: #007bff;
+  transition: color 0.2s;
 }
 button.icon-btn:hover {
   color: #0056b3;
+}
+
+/* Actions Cell - prevent wrapping */
+.actions-cell {
+  white-space: nowrap;
 }
 
 /* Table Styles */
@@ -183,17 +225,20 @@ button.icon-btn:hover {
 .table-responsive th {
   background-color: #f2f2f2;
   color: #333;
+  font-weight: 600;
 }
 
 /* Conditional Formatting */
 .positive-amount {
   color: green;
+  font-weight: 500;
 }
 .negative-amount {
   color: red;
+  font-weight: 500;
 }
 .neutral-amount {
-  color: black;
+  color: #666;
 }
 
 /* Modal Styles */
@@ -218,12 +263,22 @@ button.icon-btn:hover {
   border-radius: 8px;
   position: relative;
 }
+.modal-content h2 {
+  margin-top: 0;
+}
+.modal-content ul {
+  padding-left: 1.5em;
+}
+.modal-content li {
+  margin-bottom: 0.5em;
+}
 .modal-form form {
   display: flex;
   flex-direction: column;
 }
 .modal-form label {
   margin-top: 1em;
+  font-weight: 500;
 }
 .modal-form input,
 .modal-form select,
@@ -231,6 +286,9 @@ button.icon-btn:hover {
   margin-top: 0.5em;
   padding: 0.5em;
   width: 100%;
+}
+.modal-form button {
+  margin-top: 1em;
 }
 .close-btn {
   color: #aaa;
@@ -240,6 +298,7 @@ button.icon-btn:hover {
   font-size: 28px;
   font-weight: bold;
   cursor: pointer;
+  line-height: 1;
 }
 .close-btn:hover,
 .close-btn:focus {
@@ -248,6 +307,15 @@ button.icon-btn:hover {
 #close-modal-btn {
   margin-top: 1em;
   width: auto;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 0.75em 1.5em;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#close-modal-btn:hover {
+  background-color: #0056b3;
 }
 
 /* Chart Container */
@@ -259,7 +327,29 @@ button.icon-btn:hover {
   margin: 0 auto 1em auto;
 }
 
+/* Balance Display */
+#balance-display {
+  text-align: center;
+  font-size: 1.3em;
+  padding: 0.5em;
+  margin-bottom: 1em;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+}
+
 /* Responsive Adjustments */
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+  }
+  .col {
+    width: 100%;
+  }
+  .bar-chart-container {
+    height: 300px;
+  }
+}
+
 @media (max-width: 600px) {
   header {
     text-align: center;
@@ -269,6 +359,9 @@ button.icon-btn:hover {
     left: 0;
     top: 50%;
     transform: translateY(-50%);
+  }
+  header h1 {
+    font-size: 1.2em;
   }
   .col {
     padding: 0.5em;
@@ -284,6 +377,33 @@ button.icon-btn:hover {
   .table-responsive table,
   .table-responsive th,
   .table-responsive td {
-    font-size: 0.9em;
+    font-size: 0.85em;
+    padding: 6px;
+  }
+  .bar-chart-container {
+    height: 250px;
+  }
+  .category-container {
+    flex-direction: column;
+  }
+  .category-container select,
+  .category-container button {
+    width: 100%;
+  }
+}
+
+/* Print Styles */
+@media print {
+  header nav,
+  .card-form,
+  button.icon-btn,
+  .modal {
+    display: none !important;
+  }
+  .collapsible-card {
+    break-inside: avoid;
+  }
+  .card-body {
+    display: block !important;
   }
 }
