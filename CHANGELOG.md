@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [1.6.1] - 2024-12-11
+
+### Fixed
+* **Delete Button Click Target Bug**: Fixed issue where clicking the trash icon (instead of the button itself) would fail silently. Now uses `closest()` to properly detect button clicks.
+* **Floating Point Precision Errors**: Added `roundToCents()` helper function to fix JavaScript floating point issues (e.g., `-98.61999999999999` now displays as `-98.62`). Applied to all calculations and imports.
+* **Monthly Income/Bills Edge Case**: Fixed issue where income or bills set for the 31st wouldn't trigger in months with fewer days. Now correctly triggers on the last day of shorter months.
+
+### Added
+* **Delete Confirmation Dialog**: Now prompts "Are you sure you want to delete [item name]?" before removing any entry.
+* **Empty State Messages**: Tables and charts now display helpful messages when no data is available instead of being blank.
+* **Print Styles**: Added CSS for cleaner printing (hides navigation, forms, and modals).
+
+### Changed
+* **Default Income Frequency**: Changed default selection to "Bi-weekly" as this is the most common pay frequency.
+* **Sample Data Dates**: Updated sample data to use current dates instead of outdated 2024 dates.
+* **Default Categories**: Added "Credit Card Payment" and "Student Loans" to default category list.
+* **Form Placeholders**: Added placeholder text showing math expression support (e.g., "100+50").
+
+### Improved
+* **Code Quality**: Added consistent rounding throughout all financial calculations.
+* **UI Polish**: Added hover states to card headers, improved focus states on form inputs.
+
 ## [1.6.0] - 2024-12-10
 
 ### Added
@@ -11,7 +33,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
   * **Savings Accounts**: Users can once again create multiple savings accounts, each with its own balance and optional savings goal.
   * **Savings Contributions**: Allows for both ad hoc and recurring (scheduled) contributions from Checking to Savings.
   * **Collapsible Savings Table**: The day-by-day Savings Accounts balances can be expanded/collapsed for a more mobile-friendly experience.
-  * **Savings Goal Tracking**: Displays each savings account’s progress (percentage and remaining amount) toward a user-defined goal.
+  * **Savings Goal Tracking**: Displays each savings account's progress (percentage and remaining amount) toward a user-defined goal.
 
 * **Improved Editing for Running Budget:**
   * Instead of appending new event names, editing a running budget entry **replaces** the existing event text if the user enters a new event name (fixing the prior duplication issue).
@@ -22,7 +44,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Changed
 * **Event Name Handling in Adjustments**:
-  * Adjustments’ `event` field now overrides the daily event description to prevent repeated/duplicated text in the Running Budget table.
+  * Adjustments' `event` field now overrides the daily event description to prevent repeated/duplicated text in the Running Budget table.
 
 ## [1.5.0] - 2024-12-03
 
