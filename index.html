@@ -9,7 +9,7 @@
     />
     <title>Budget App</title>
     <!-- Link to CSS (version parameter prevents caching issues) -->
-    <link rel="stylesheet" href="styles.css?v=3.0.0" />
+    <link rel="stylesheet" href="styles.css?v=3.1.0" />
     <!-- Font Awesome for Icons (v6.4.0) -->
     <link
       rel="stylesheet"
@@ -78,13 +78,25 @@
             daily net changes for your main account.
           </li>
           <li>
+            <strong>Track Debt:</strong> Use the "Add Debt/Credit Account" form to track your debts.
+            Enter the creditor name, type, balance, APR, and payment amounts. The app calculates
+            estimated payoff time for credit cards based on your actual payments.
+          </li>
+          <li>
+            <strong>Debt Summary:</strong> View your total debt, minimum and actual payments,
+            weighted average interest rate, and estimated debt-free date in the summary panel.
+          </li>
+          <li>
+            <strong>Sort Debt Table:</strong> Click column headers in the debt table to sort by
+            name, type, balance, APR, payments, or payoff time.
+          </li>
+          <li>
             <strong>Edit Entries:</strong> Use the edit (pencil) icons to modify entries or the trash
             icons to delete them.
           </li>
           <li>
             <strong>Export/Import Data:</strong> Use the "Menu" to export or import your JSON data.
-            <em>Tip: Export regularly as a backup!</em>
-          </li>
+            <em>Tip: Export regularly as a backup!</em> Debt entries are included in exports.
           <li>
             <strong>Reset Data:</strong> Use the "Reset Data" option to clear all data and start fresh.
           </li>
@@ -314,11 +326,113 @@
                 </div>
               </div>
             </div>
+
+            <!-- Debt Tracking Form -->
+            <div class="collapsible-card expanded">
+              <div class="card-header">
+                <h2>Add Debt/Credit Account</h2>
+                <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+              </div>
+              <div class="card-body">
+                <form id="debt-form" class="card-form">
+                  <label for="debt-name">Creditor Name:</label>
+                  <input type="text" id="debt-name" placeholder="e.g., Chase Visa, Auto Loan" required />
+
+                  <label for="debt-type">Debt Type:</label>
+                  <select id="debt-type">
+                    <option value="Credit Card">Credit Card</option>
+                    <option value="Auto Loan">Auto Loan</option>
+                    <option value="Personal Loan">Personal Loan</option>
+                    <option value="Student Loan">Student Loan</option>
+                    <option value="Mortgage">Mortgage</option>
+                    <option value="Medical Debt">Medical Debt</option>
+                    <option value="Other">Other</option>
+                  </select>
+
+                  <label for="debt-balance">Current Balance (USD):</label>
+                  <input type="text" id="debt-balance" placeholder="e.g., 5000 or 4500+500" required />
+
+                  <label for="debt-apr">APR (%):</label>
+                  <input type="text" id="debt-apr" placeholder="e.g., 19.99" required />
+
+                  <label for="debt-min-payment">Minimum Payment (USD):</label>
+                  <input type="text" id="debt-min-payment" placeholder="e.g., 50" required />
+
+                  <label for="debt-actual-payment">Actual Monthly Payment (USD):</label>
+                  <input type="text" id="debt-actual-payment" placeholder="e.g., 100" required />
+
+                  <label for="debt-loan-length">Loan Term (months, 0 for revolving credit):</label>
+                  <input type="number" id="debt-loan-length" min="0" value="0" />
+
+                  <button type="submit">Add Debt</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Debt Entries List -->
+            <div class="collapsible-card expanded">
+              <div class="card-header">
+                <h2>Debt Accounts</h2>
+                <span class="card-toggle"><i class="fa-solid fa-angle-right"></i></span>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table id="debt-list-table">
+                    <thead>
+                      <tr>
+                        <th class="sortable" data-column="name">Creditor <i class="fa-solid fa-sort"></i></th>
+                        <th class="sortable" data-column="type">Type <i class="fa-solid fa-sort"></i></th>
+                        <th class="sortable" data-column="balance">Balance <i class="fa-solid fa-sort"></i></th>
+                        <th class="sortable" data-column="apr">APR <i class="fa-solid fa-sort"></i></th>
+                        <th class="sortable" data-column="minPayment">Min Pmt <i class="fa-solid fa-sort"></i></th>
+                        <th class="sortable" data-column="actualPayment">Actual Pmt <i class="fa-solid fa-sort"></i></th>
+                        <th class="sortable" data-column="payoffMonths">Payoff <i class="fa-solid fa-sort"></i></th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Rows will be added dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Right Column -->
           <div class="col" id="display-area">
             <!-- Checking Account Balance Display (inserted dynamically) -->
+
+            <!-- Debt Summary Display -->
+            <div id="debt-summary-container" class="debt-summary-card">
+              <h2>Debt Summary</h2>
+              <div class="debt-summary-grid">
+                <div class="debt-summary-item">
+                  <span class="debt-summary-label">Total Debt:</span>
+                  <span id="total-debt" class="debt-summary-value">$0.00</span>
+                </div>
+                <div class="debt-summary-item">
+                  <span class="debt-summary-label">Total Min Payment:</span>
+                  <span id="total-min-payment" class="debt-summary-value">$0.00</span>
+                </div>
+                <div class="debt-summary-item">
+                  <span class="debt-summary-label">Total Actual Payment:</span>
+                  <span id="total-actual-payment" class="debt-summary-value">$0.00</span>
+                </div>
+                <div class="debt-summary-item">
+                  <span class="debt-summary-label">Avg. Interest Rate:</span>
+                  <span id="avg-interest-rate" class="debt-summary-value">0.00%</span>
+                </div>
+                <div class="debt-summary-item">
+                  <span class="debt-summary-label">Number of Accounts:</span>
+                  <span id="debt-account-count" class="debt-summary-value">0</span>
+                </div>
+                <div class="debt-summary-item">
+                  <span class="debt-summary-label">Est. Debt-Free Date:</span>
+                  <span id="debt-free-date" class="debt-summary-value">N/A</span>
+                </div>
+              </div>
+            </div>
 
             <!-- Expenses Bar Chart -->
             <h2>Expenses Breakdown (Total Over Projection Period)</h2>
@@ -373,11 +487,11 @@
 
       <!-- Footer -->
       <footer>
-        <p>&copy; 2025 Budget App | v3.0.0</p>
+        <p>&copy; 2025 Budget App | v3.1.0</p>
       </footer>
     </main>
 
     <!-- Link to JavaScript (version parameter prevents caching issues) -->
-    <script src="app.js?v=3.0.0"></script>
+    <script src="app.js?v=3.1.0"></script>
   </body>
 </html>
