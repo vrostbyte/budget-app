@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // =======================
   // App Version (update this when releasing new versions)
   // =======================
-  const APP_VERSION = '3.0.0';
+  const APP_VERSION = '3.1.0';
   
   // =======================
   // Global Data Variables
@@ -16,6 +16,20 @@ document.addEventListener('DOMContentLoaded', function () {
   let projectionLength = 1; // Default to 1 month
   let categories = [];
   let runningBudgetAdjustments = [];
+  let debtEntries = [];
+  let debtSortColumn = 'name';
+  let debtSortDirection = 'asc';
+
+  // Debt types available for selection
+  const debtTypes = [
+    'Credit Card',
+    'Auto Loan',
+    'Personal Loan',
+    'Student Loan',
+    'Mortgage',
+    'Medical Debt',
+    'Other'
+  ];
 
   // Chart variables
   let expensesChart;
@@ -107,7 +121,15 @@ document.addEventListener('DOMContentLoaded', function () {
       "Student Loans",
       "Credit Card Payment"
     ],
-    "runningBudgetAdjustments": []
+    "runningBudgetAdjustments": [],
+    "debtEntries": [
+      { "name": "Chase Sapphire", "type": "Credit Card", "balance": 4250.00, "apr": 21.99, "minPayment": 85, "actualPayment": 250, "loanLength": 0 },
+      { "name": "Discover It", "type": "Credit Card", "balance": 2100.50, "apr": 18.99, "minPayment": 42, "actualPayment": 100, "loanLength": 0 },
+      { "name": "Capital One Quicksilver", "type": "Credit Card", "balance": 890.25, "apr": 24.99, "minPayment": 25, "actualPayment": 96, "loanLength": 0 },
+      { "name": "Auto Finance Corp", "type": "Auto Loan", "balance": 12500.00, "apr": 5.99, "minPayment": 345.40, "actualPayment": 345.40, "loanLength": 48 },
+      { "name": "Federal Student Loan", "type": "Student Loan", "balance": 28000.00, "apr": 4.5, "minPayment": 376, "actualPayment": 376, "loanLength": 120 },
+      { "name": "Personal Loan - Credit Union", "type": "Personal Loan", "balance": 3200.00, "apr": 9.99, "minPayment": 92, "actualPayment": 92, "loanLength": 36 }
+    ]
   };
 
   // =======================
@@ -123,6 +145,7 @@ document.addEventListener('DOMContentLoaded', function () {
     projectionLength = sampleData.projectionLength;
     categories = sampleData.categories;
     runningBudgetAdjustments = sampleData.runningBudgetAdjustments;
+    debtEntries = sampleData.debtEntries;
     saveData();
     populateCategories();
     initializeStartDate();
@@ -184,6 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
     localStorage.setItem('projectionLength', projectionLength);
     localStorage.setItem('categories', JSON.stringify(categories));
     localStorage.setItem('runningBudgetAdjustments', JSON.stringify(runningBudgetAdjustments));
+    localStorage.setItem('debtEntries', JSON.stringify(debtEntries));
   }
 
   function loadData() {
@@ -197,6 +221,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const projectionLengthData = localStorage.getItem('projectionLength');
       const categoriesData = localStorage.getItem('categories');
       const adjustmentsData = localStorage.getItem('runningBudgetAdjustments');
+      const debtData = localStorage.getItem('debtEntries');
 
       if (billsData) bills = JSON.parse(billsData);
       if (incomeData) incomeEntries = JSON.parse(incomeData);
@@ -240,6 +265,17 @@ document.addEventListener('DOMContentLoaded', function () {
           amount: roundToCents(adj.amount)
         }));
       }
+      if (debtData) {
+        debtEntries = JSON.parse(debtData);
+        // Fix any floating point precision issues in loaded debt data
+        debtEntries = debtEntries.map(debt => ({
+          ...debt,
+          balance: roundToCents(debt.balance),
+          minPayment: roundToCents(debt.minPayment),
+          actualPayment: roundToCents(debt.actualPayment),
+          apr: parseFloat(debt.apr) || 0
+        }));
+      }
     } catch (error) {
       console.error('Error loading data from localStorage:', error);
       // Reset to defaults if data is corrupted
@@ -273,6 +309,7 @@ document.addEventListener('DOMContentLoaded', function () {
         "Student Loans"
       ];
       runningBudgetAdjustments = [];
+      debtEntries = [];
       // Don't save here - let user decide if they want to reset
       throw new Error('Corrupted localStorage data detected');
     }
@@ -304,6 +341,8 @@ document.addEventListener('DOMContentLoaded', function () {
     renderBillsTable();
     renderAdhocExpensesTable();
     renderIncomeTable();
+    renderDebtTable();
+    updateDebtSummary();
     const expenseTotals = calculateTotalExpenses();
     renderExpensesCharts(expenseTotals);
     const categoryTotals = calculateExpensesByCategory();
@@ -707,6 +746,231 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // =======================
+  // Debt Tracking
+  // =======================
+
+  // Calculate estimated payoff months for a debt
+  function calculatePayoffMonths(balance, apr, monthlyPayment) {
+    if (monthlyPayment <= 0 || balance <= 0) return Infinity;
+
+    const monthlyRate = (apr / 100) / 12;
+
+    // If monthly payment doesn't cover interest, it will never pay off
+    const monthlyInterest = balance * monthlyRate;
+    if (monthlyPayment <= monthlyInterest) return Infinity;
+
+    // For 0% APR, simple division
+    if (apr === 0) {
+      return Math.ceil(balance / monthlyPayment);
+    }
+
+    // Standard amortization formula: n = -log(1 - (r * P / M)) / log(1 + r)
+    // Where: n = number of months, r = monthly rate, P = principal, M = monthly payment
+    const months = -Math.log(1 - (monthlyRate * balance / monthlyPayment)) / Math.log(1 + monthlyRate);
+
+    return Math.ceil(months);
+  }
+
+  // Format payoff months for display
+  function formatPayoffMonths(months) {
+    if (months === Infinity || isNaN(months)) {
+      return 'Never';
+    }
+    if (months <= 0) {
+      return 'Paid';
+    }
+    const years = Math.floor(months / 12);
+    const remainingMonths = months % 12;
+    if (years === 0) {
+      return `${months} mo`;
+    } else if (remainingMonths === 0) {
+      return `${years} yr`;
+    } else {
+      return `${years} yr ${remainingMonths} mo`;
+    }
+  }
+
+  // Sort debt entries
+  function sortDebtEntries(entries) {
+    return [...entries].sort((a, b) => {
+      let aVal, bVal;
+
+      switch (debtSortColumn) {
+        case 'name':
+          aVal = a.name.toLowerCase();
+          bVal = b.name.toLowerCase();
+          break;
+        case 'type':
+          aVal = a.type.toLowerCase();
+          bVal = b.type.toLowerCase();
+          break;
+        case 'balance':
+          aVal = a.balance;
+          bVal = b.balance;
+          break;
+        case 'apr':
+          aVal = a.apr;
+          bVal = b.apr;
+          break;
+        case 'minPayment':
+          aVal = a.minPayment;
+          bVal = b.minPayment;
+          break;
+        case 'actualPayment':
+          aVal = a.actualPayment;
+          bVal = b.actualPayment;
+          break;
+        case 'payoffMonths':
+          aVal = calculatePayoffMonths(a.balance, a.apr, a.actualPayment);
+          bVal = calculatePayoffMonths(b.balance, b.apr, b.actualPayment);
+          break;
+        default:
+          aVal = a.name.toLowerCase();
+          bVal = b.name.toLowerCase();
+      }
+
+      if (typeof aVal === 'string') {
+        const comparison = aVal.localeCompare(bVal);
+        return debtSortDirection === 'asc' ? comparison : -comparison;
+      } else {
+        const comparison = aVal - bVal;
+        return debtSortDirection === 'asc' ? comparison : -comparison;
+      }
+    });
+  }
+
+  // Render Debt Table
+  function renderDebtTable() {
+    const debtTableBody = document.getElementById('debt-list-table').getElementsByTagName('tbody')[0];
+    debtTableBody.innerHTML = '';
+
+    if (debtEntries.length === 0) {
+      const row = debtTableBody.insertRow();
+      const cell = row.insertCell(0);
+      cell.colSpan = 8;
+      cell.textContent = 'No debt accounts added yet.';
+      cell.style.textAlign = 'center';
+      cell.style.fontStyle = 'italic';
+      return;
+    }
+
+    const sortedEntries = sortDebtEntries(debtEntries);
+
+    sortedEntries.forEach((debt) => {
+      // Find original index for edit/delete operations
+      const originalIndex = debtEntries.findIndex(d =>
+        d.name === debt.name && d.type === debt.type && d.balance === debt.balance
+      );
+
+      const row = debtTableBody.insertRow();
+      row.insertCell(0).textContent = debt.name;
+      row.insertCell(1).textContent = debt.type;
+
+      const balanceCell = row.insertCell(2);
+      balanceCell.textContent = `$${debt.balance.toFixed(2)}`;
+      balanceCell.classList.add('negative-amount');
+
+      row.insertCell(3).textContent = `${debt.apr.toFixed(2)}%`;
+      row.insertCell(4).textContent = `$${debt.minPayment.toFixed(2)}`;
+      row.insertCell(5).textContent = `$${debt.actualPayment.toFixed(2)}`;
+
+      const payoffMonths = calculatePayoffMonths(debt.balance, debt.apr, debt.actualPayment);
+      const payoffCell = row.insertCell(6);
+      payoffCell.textContent = formatPayoffMonths(payoffMonths);
+      if (payoffMonths === Infinity) {
+        payoffCell.classList.add('negative-amount');
+      } else if (payoffMonths <= 12) {
+        payoffCell.classList.add('positive-amount');
+      }
+
+      const actionsCell = row.insertCell(7);
+      actionsCell.classList.add('actions-cell');
+
+      const editBtn = document.createElement('button');
+      editBtn.classList.add('icon-btn');
+      editBtn.innerHTML = '<i class="fa-solid fa-edit"></i>';
+      editBtn.dataset.index = originalIndex;
+      editBtn.dataset.type = 'debt';
+      editBtn.addEventListener('click', openEditModal);
+      actionsCell.appendChild(editBtn);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.classList.add('icon-btn');
+      deleteBtn.innerHTML = '<i class="fa-solid fa-trash-alt"></i>';
+      deleteBtn.dataset.index = originalIndex;
+      deleteBtn.dataset.type = 'debt';
+      deleteBtn.addEventListener('click', deleteEntry);
+      actionsCell.appendChild(deleteBtn);
+    });
+
+    // Update sort icons
+    updateDebtSortIcons();
+  }
+
+  // Update sort icons in table header
+  function updateDebtSortIcons() {
+    const headers = document.querySelectorAll('#debt-list-table th.sortable');
+    headers.forEach(header => {
+      const icon = header.querySelector('i');
+      const column = header.dataset.column;
+      if (column === debtSortColumn) {
+        icon.className = debtSortDirection === 'asc'
+          ? 'fa-solid fa-sort-up'
+          : 'fa-solid fa-sort-down';
+      } else {
+        icon.className = 'fa-solid fa-sort';
+      }
+    });
+  }
+
+  // Calculate and update debt summary
+  function updateDebtSummary() {
+    const totalDebt = debtEntries.reduce((sum, debt) => sum + debt.balance, 0);
+    const totalMinPayment = debtEntries.reduce((sum, debt) => sum + debt.minPayment, 0);
+    const totalActualPayment = debtEntries.reduce((sum, debt) => sum + debt.actualPayment, 0);
+
+    // Calculate weighted average APR (weighted by balance)
+    let weightedApr = 0;
+    if (totalDebt > 0) {
+      weightedApr = debtEntries.reduce((sum, debt) => sum + (debt.apr * debt.balance), 0) / totalDebt;
+    }
+
+    // Calculate estimated debt-free date (longest payoff time)
+    let maxPayoffMonths = 0;
+    debtEntries.forEach(debt => {
+      const months = calculatePayoffMonths(debt.balance, debt.apr, debt.actualPayment);
+      if (months !== Infinity && months > maxPayoffMonths) {
+        maxPayoffMonths = months;
+      }
+    });
+
+    let debtFreeDate = 'N/A';
+    if (debtEntries.length > 0 && maxPayoffMonths > 0 && maxPayoffMonths !== Infinity) {
+      const futureDate = new Date();
+      futureDate.setMonth(futureDate.getMonth() + maxPayoffMonths);
+      debtFreeDate = futureDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    } else if (debtEntries.some(d => calculatePayoffMonths(d.balance, d.apr, d.actualPayment) === Infinity)) {
+      debtFreeDate = 'Never (increase payments)';
+    }
+
+    // Update display
+    document.getElementById('total-debt').textContent = `$${totalDebt.toFixed(2)}`;
+    document.getElementById('total-min-payment').textContent = `$${totalMinPayment.toFixed(2)}`;
+    document.getElementById('total-actual-payment').textContent = `$${totalActualPayment.toFixed(2)}`;
+    document.getElementById('avg-interest-rate').textContent = `${weightedApr.toFixed(2)}%`;
+    document.getElementById('debt-account-count').textContent = debtEntries.length;
+    document.getElementById('debt-free-date').textContent = debtFreeDate;
+
+    // Color code total debt
+    const totalDebtEl = document.getElementById('total-debt');
+    if (totalDebt > 0) {
+      totalDebtEl.style.color = 'red';
+    } else {
+      totalDebtEl.style.color = 'green';
+    }
+  }
+
+  // =======================
   // Charts
   // =======================
   function renderExpensesCharts(expenseTotals) {
@@ -944,6 +1208,35 @@ document.addEventListener('DOMContentLoaded', function () {
         updateRunningBudgetEntry(oldDate);
         editModal.style.display = 'none';
       };
+
+    } else if (type === 'debt') {
+      const debt = debtEntries[index];
+      editModalTitle.textContent = 'Edit Debt Account';
+      editForm.innerHTML = `
+        <label for="edit-debt-name">Creditor Name:</label>
+        <input type="text" id="edit-debt-name" required value="${debt.name}" />
+        <label for="edit-debt-type">Debt Type:</label>
+        <select id="edit-debt-type">
+          ${debtTypes.map(t => `<option value="${t}" ${t === debt.type ? 'selected' : ''}>${t}</option>`).join('')}
+        </select>
+        <label for="edit-debt-balance">Current Balance (USD):</label>
+        <input type="text" id="edit-debt-balance" required value="${debt.balance}" />
+        <label for="edit-debt-apr">APR (%):</label>
+        <input type="text" id="edit-debt-apr" required value="${debt.apr}" />
+        <label for="edit-debt-min-payment">Minimum Payment (USD):</label>
+        <input type="text" id="edit-debt-min-payment" required value="${debt.minPayment}" />
+        <label for="edit-debt-actual-payment">Actual Monthly Payment (USD):</label>
+        <input type="text" id="edit-debt-actual-payment" required value="${debt.actualPayment}" />
+        <label for="edit-debt-loan-length">Loan Term (months, 0 for revolving credit):</label>
+        <input type="number" id="edit-debt-loan-length" min="0" value="${debt.loanLength || 0}" />
+        <button type="submit">Update Debt</button>
+        <button type="button" id="cancel-edit-btn">Cancel</button>
+      `;
+      editForm.onsubmit = function (e) {
+        e.preventDefault();
+        updateDebtEntry(index);
+        editModal.style.display = 'none';
+      };
     }
     editModal.style.display = 'block';
     document.getElementById('cancel-edit-btn').addEventListener('click', function () {
@@ -1011,6 +1304,29 @@ document.addEventListener('DOMContentLoaded', function () {
     updateDisplay();
   }
 
+  function updateDebtEntry(index) {
+    const name = document.getElementById('edit-debt-name').value.trim();
+    const type = document.getElementById('edit-debt-type').value;
+    const balance = parseMathExpression(document.getElementById('edit-debt-balance').value);
+    const apr = parseFloat(document.getElementById('edit-debt-apr').value) || 0;
+    const minPayment = parseMathExpression(document.getElementById('edit-debt-min-payment').value);
+    const actualPayment = parseMathExpression(document.getElementById('edit-debt-actual-payment').value);
+    const loanLength = parseInt(document.getElementById('edit-debt-loan-length').value, 10) || 0;
+
+    if (balance < 0) {
+      alert('Balance cannot be negative.');
+      return;
+    }
+    if (apr < 0) {
+      alert('APR cannot be negative.');
+      return;
+    }
+
+    debtEntries[index] = { name, type, balance, apr, minPayment, actualPayment, loanLength };
+    saveData();
+    updateDisplay();
+  }
+
   function deleteEntry(event) {
     // Use closest() to ensure we get the button element even if the icon is clicked
     const btn = event.target.closest('button');
@@ -1026,19 +1342,23 @@ document.addEventListener('DOMContentLoaded', function () {
       itemName = adhocExpenses[index].name;
     } else if (type === 'income') {
       itemName = incomeEntries[index].name;
+    } else if (type === 'debt') {
+      itemName = debtEntries[index].name;
     }
-    
+
     // Confirm before deleting
     if (!confirm(`Are you sure you want to delete "${itemName}"?`)) {
       return;
     }
-    
+
     if (type === 'bill') {
       bills.splice(index, 1);
     } else if (type === 'adhocExpense') {
       adhocExpenses.splice(index, 1);
     } else if (type === 'income') {
       incomeEntries.splice(index, 1);
+    } else if (type === 'debt') {
+      debtEntries.splice(index, 1);
     }
     saveData();
     updateDisplay();
@@ -1101,6 +1421,45 @@ document.addEventListener('DOMContentLoaded', function () {
     updateDisplay();
   });
 
+  document.getElementById('debt-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const name = document.getElementById('debt-name').value.trim();
+    const type = document.getElementById('debt-type').value;
+    const balance = parseMathExpression(document.getElementById('debt-balance').value);
+    const apr = parseFloat(document.getElementById('debt-apr').value) || 0;
+    const minPayment = parseMathExpression(document.getElementById('debt-min-payment').value);
+    const actualPayment = parseMathExpression(document.getElementById('debt-actual-payment').value);
+    const loanLength = parseInt(document.getElementById('debt-loan-length').value, 10) || 0;
+
+    if (balance < 0) {
+      alert('Balance cannot be negative.');
+      return;
+    }
+    if (apr < 0) {
+      alert('APR cannot be negative.');
+      return;
+    }
+
+    debtEntries.push({ name, type, balance, apr, minPayment, actualPayment, loanLength });
+    saveData();
+    e.target.reset();
+    updateDisplay();
+  });
+
+  // Debt table sorting
+  document.querySelectorAll('#debt-list-table th.sortable').forEach(header => {
+    header.addEventListener('click', function () {
+      const column = this.dataset.column;
+      if (debtSortColumn === column) {
+        debtSortDirection = debtSortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        debtSortColumn = column;
+        debtSortDirection = 'asc';
+      }
+      renderDebtTable();
+    });
+  });
+
   document.getElementById('balance-form').addEventListener('submit', function (e) {
     e.preventDefault();
     accountName = document.getElementById('account-name').value.trim();
@@ -1143,7 +1502,8 @@ document.addEventListener('DOMContentLoaded', function () {
       startDate: startDate ? startDate.toISOString() : null,
       projectionLength,
       categories,
-      runningBudgetAdjustments
+      runningBudgetAdjustments,
+      debtEntries
     };
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
     const downloadAnchorNode = document.createElement('a');
@@ -1204,6 +1564,15 @@ document.addEventListener('DOMContentLoaded', function () {
           ...adj,
           amount: roundToCents(adj.amount)
         }));
+        // Import debt entries with precision fixes
+        debtEntries = (data.debtEntries || []).map(debt => ({
+          ...debt,
+          balance: roundToCents(debt.balance || 0),
+          minPayment: roundToCents(debt.minPayment || 0),
+          actualPayment: roundToCents(debt.actualPayment || 0),
+          apr: parseFloat(debt.apr) || 0,
+          loanLength: parseInt(debt.loanLength, 10) || 0
+        }));
         saveData();
         populateCategories();
         initializeStartDate();
@@ -1251,11 +1620,13 @@ document.addEventListener('DOMContentLoaded', function () {
         "Student Loans"
       ];
       runningBudgetAdjustments = [];
+      debtEntries = [];
       document.getElementById('bill-form').reset();
       document.getElementById('adhoc-expense-form').reset();
       document.getElementById('income-form').reset();
       document.getElementById('balance-form').reset();
       document.getElementById('start-date-form').reset();
+      document.getElementById('debt-form').reset();
       document.getElementById('edit-modal').style.display = 'none';
       saveData();
       populateCategories();

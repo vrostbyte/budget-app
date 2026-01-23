@@ -151,5 +151,43 @@
       "amount": -60.00,
       "event": "Father's Day Gift"
     }
+  ],
+  "debtEntries": [
+    {
+      "name": "Visa Platinum",
+      "type": "Credit Card",
+      "balance": 3500.00,
+      "apr": 19.99,
+      "minPayment": 70,
+      "actualPayment": 150,
+      "loanLength": 0
+    },
+    {
+      "name": "Mastercard Gold",
+      "type": "Credit Card",
+      "balance": 1200.50,
+      "apr": 22.99,
+      "minPayment": 35,
+      "actualPayment": 100,
+      "loanLength": 0
+    },
+    {
+      "name": "Auto Loan - Honda",
+      "type": "Auto Loan",
+      "balance": 15000.00,
+      "apr": 4.99,
+      "minPayment": 350,
+      "actualPayment": 350,
+      "loanLength": 60
+    },
+    {
+      "name": "Student Loan",
+      "type": "Student Loan",
+      "balance": 25000.00,
+      "apr": 5.5,
+      "minPayment": 280,
+      "actualPayment": 300,
+      "loanLength": 120
+    }
   ]
 }
