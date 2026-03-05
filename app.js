@@ -192,6 +192,40 @@ document.addEventListener('DOMContentLoaded', function () {
     return new Date(year, month - 1, day);
   }
 
+  function generateId() {
+    return crypto.randomUUID
+      ? crypto.randomUUID()
+      : Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+
+  function getBillEffectiveAmount(bill) {
+    if (!bill.linkedDebtId) return bill.amount;
+    const debt = debtEntries.find(d => d.id === bill.linkedDebtId);
+    return debt ? debt.actualPayment : bill.amount;
+  }
+
+  function syncLinkedBillAmounts() {
+    let changed = false;
+    bills.forEach(bill => {
+      if (!bill.linkedDebtId) return;
+      const debt = debtEntries.find(d => d.id === bill.linkedDebtId);
+      if (debt && bill.amount !== debt.actualPayment) {
+        bill.amount = debt.actualPayment;
+        changed = true;
+      }
+    });
+    if (changed) saveData();
+  }
+
+  function unlinkBillsForDebt(debtId) {
+    bills.forEach(bill => {
+      if (bill.linkedDebtId === debtId) {
+        bill.amount = getBillEffectiveAmount(bill);
+        bill.linkedDebtId = null;
+      }
+    });
+  }
+
   function formatRunningBudgetDate(date) {
     const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
     return date.toLocaleDateString('en-US', options);
@@ -269,6 +303,7 @@ document.addEventListener('DOMContentLoaded', function () {
         debtEntries = JSON.parse(debtData);
         // Fix any floating point precision issues in loaded debt data
         debtEntries = debtEntries.map(debt => ({
+          id: debt.id || generateId(),
           ...debt,
           balance: roundToCents(debt.balance),
           minPayment: roundToCents(debt.minPayment),
@@ -401,7 +436,7 @@ document.addEventListener('DOMContentLoaded', function () {
       let dailyExpenses = 0;
       bills.forEach((bill) => {
         if (isBillOnDate(bill, currentDate)) {
-          dailyExpenses += bill.amount;
+          dailyExpenses += getBillEffectiveAmount(bill);
         }
       });
       adhocExpenses.forEach((expense) => {
@@ -632,9 +667,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     bills.forEach((bill, index) => {
       const row = billsTableBody.insertRow();
-      row.insertCell(0).textContent = bill.name;
+      const nameCell = row.insertCell(0);
+      nameCell.textContent = bill.name;
+      if (bill.linkedDebtId) {
+        const icon = document.createElement('i');
+        icon.className = 'fa-solid fa-link';
+        icon.title = 'Linked to debt tracker';
+        icon.style.cssText = 'margin-left:6px;color:#888;font-size:0.85em;';
+        nameCell.appendChild(icon);
+      }
       row.insertCell(1).textContent = bill.date;
-      row.insertCell(2).textContent = `$${bill.amount.toFixed(2)}`;
+      row.insertCell(2).textContent = `$${getBillEffectiveAmount(bill).toFixed(2)}`;
       row.insertCell(3).textContent = bill.category;
       const actionsCell = row.insertCell(4);
       actionsCell.classList.add('actions-cell');
@@ -992,7 +1035,7 @@ document.addEventListener('DOMContentLoaded', function () {
     bills.forEach((bill) => {
       const key = bill.name;
       const months = projectionLength;
-      expenseTotals[key] = roundToCents((expenseTotals[key] || 0) + bill.amount * months);
+      expenseTotals[key] = roundToCents((expenseTotals[key] || 0) + getBillEffectiveAmount(bill) * months);
     });
     adhocExpenses.forEach((expense) => {
       const key = expense.name;
@@ -1006,7 +1049,7 @@ document.addEventListener('DOMContentLoaded', function () {
     bills.forEach((bill) => {
       const category = bill.category || 'Misc/Other';
       const months = projectionLength;
-      categoryTotals[category] = roundToCents((categoryTotals[category] || 0) + bill.amount * months);
+      categoryTotals[category] = roundToCents((categoryTotals[category] || 0) + getBillEffectiveAmount(bill) * months);
     });
     adhocExpenses.forEach((expense) => {
       const category = expense.category || 'Misc/Other';
@@ -1111,13 +1154,22 @@ document.addEventListener('DOMContentLoaded', function () {
     if (type === 'bill') {
       const bill = bills[index];
       editModalTitle.textContent = 'Edit Bill/Expense';
+      const debtOptionsHtml = debtEntries.map(d =>
+        `<option value="${d.id}" ${d.id === bill.linkedDebtId ? 'selected' : ''}>${d.name} (${d.type}) — $${d.actualPayment.toFixed(2)}/mo</option>`
+      ).join('');
       editForm.innerHTML = `
         <label for="edit-bill-name">Bill Name:</label>
         <input type="text" id="edit-bill-name" required value="${bill.name}" />
         <label for="edit-bill-date">Day of Month (1-31):</label>
         <input type="number" id="edit-bill-date" min="1" max="31" required value="${bill.date}" />
         <label for="edit-bill-amount">Amount (USD):</label>
-        <input type="text" id="edit-bill-amount" required value="${bill.amount}" />
+        <input type="text" id="edit-bill-amount" required value="${getBillEffectiveAmount(bill)}" ${bill.linkedDebtId ? 'readonly' : ''} />
+        ${bill.linkedDebtId ? '<small style="color:#666;">(managed by debt tracker)</small>' : ''}
+        <label for="edit-bill-linked-debt">Link to Debt Account:</label>
+        <select id="edit-bill-linked-debt">
+          <option value="">-- Unlink / None --</option>
+          ${debtOptionsHtml}
+        </select>
         <label for="edit-bill-category">Category:</label>
         <div class="category-container">
           <select id="edit-bill-category">
@@ -1128,6 +1180,17 @@ document.addEventListener('DOMContentLoaded', function () {
         <button type="submit">Update Bill</button>
         <button type="button" id="cancel-edit-btn">Cancel</button>
       `;
+      // Wire the debt link select to toggle amount readonly
+      document.getElementById('edit-bill-linked-debt').addEventListener('change', function () {
+        const amountInput = document.getElementById('edit-bill-amount');
+        if (this.value) {
+          const debt = debtEntries.find(d => d.id === this.value);
+          amountInput.value = debt ? debt.actualPayment : amountInput.value;
+          amountInput.readOnly = true;
+        } else {
+          amountInput.readOnly = false;
+        }
+      });
       editForm.onsubmit = function (e) {
         e.preventDefault();
         updateBillEntry(index);
@@ -1250,13 +1313,16 @@ document.addEventListener('DOMContentLoaded', function () {
   function updateBillEntry(index) {
     const name = document.getElementById('edit-bill-name').value.trim();
     const date = parseInt(document.getElementById('edit-bill-date').value, 10);
-    const amount = parseMathExpression(document.getElementById('edit-bill-amount').value);
     const category = document.getElementById('edit-bill-category').value;
+    const linkedDebtId = document.getElementById('edit-bill-linked-debt').value || null;
+    const amount = linkedDebtId
+      ? getBillEffectiveAmount(bills[index])
+      : parseMathExpression(document.getElementById('edit-bill-amount').value);
     if (date < 1 || date > 31) {
       alert('Please enter a valid day of the month (1-31).');
       return;
     }
-    bills[index] = { name, date, amount, category };
+    bills[index] = { name, date, amount, category, linkedDebtId };
     saveData();
     updateDisplay();
   }
@@ -1322,7 +1388,8 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    debtEntries[index] = { name, type, balance, apr, minPayment, actualPayment, loanLength };
+    debtEntries[index] = { id: debtEntries[index].id, name, type, balance, apr, minPayment, actualPayment, loanLength };
+    syncLinkedBillAmounts();
     saveData();
     updateDisplay();
   }
@@ -1358,6 +1425,7 @@ document.addEventListener('DOMContentLoaded', function () {
     } else if (type === 'income') {
       incomeEntries.splice(index, 1);
     } else if (type === 'debt') {
+      unlinkBillsForDebt(debtEntries[index].id);
       debtEntries.splice(index, 1);
     }
     saveData();
@@ -1377,16 +1445,55 @@ document.addEventListener('DOMContentLoaded', function () {
     e.preventDefault();
     const name = document.getElementById('bill-name').value.trim();
     const date = parseInt(document.getElementById('bill-date').value, 10);
-    const amount = parseMathExpression(document.getElementById('bill-amount').value);
+    const linkedDebtId = document.getElementById('bill-linked-debt').value || null;
+    const amount = linkedDebtId
+      ? (debtEntries.find(d => d.id === linkedDebtId) || {}).actualPayment || 0
+      : parseMathExpression(document.getElementById('bill-amount').value);
     const category = document.getElementById('bill-category').value;
     if (date < 1 || date > 31) {
       alert('Please enter a valid day of the month (1-31).');
       return;
     }
-    bills.push({ name, date, amount, category });
+    bills.push({ name, date, amount, category, linkedDebtId });
     saveData();
     e.target.reset();
+    // Reset link toggle state
+    document.getElementById('bill-link-debt-toggle').checked = false;
+    document.getElementById('bill-debt-dropdown-wrapper').style.display = 'none';
+    document.getElementById('bill-amount').disabled = false;
+    document.getElementById('bill-linked-debt-preview').textContent = '';
     updateDisplay();
+  });
+
+  function populateBillDebtDropdown(selectEl) {
+    selectEl.innerHTML = '<option value="">-- Select debt account --</option>';
+    debtEntries.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = `${d.name} (${d.type}) — $${d.actualPayment.toFixed(2)}/mo`;
+      selectEl.appendChild(opt);
+    });
+  }
+
+  document.getElementById('bill-link-debt-toggle').addEventListener('change', function () {
+    const wrapper = document.getElementById('bill-debt-dropdown-wrapper');
+    const amountInput = document.getElementById('bill-amount');
+    if (this.checked) {
+      wrapper.style.display = 'block';
+      amountInput.disabled = true;
+      populateBillDebtDropdown(document.getElementById('bill-linked-debt'));
+    } else {
+      wrapper.style.display = 'none';
+      amountInput.disabled = false;
+      document.getElementById('bill-linked-debt').value = '';
+      document.getElementById('bill-linked-debt-preview').textContent = '';
+    }
+  });
+
+  document.getElementById('bill-linked-debt').addEventListener('change', function () {
+    const debt = debtEntries.find(d => d.id === this.value);
+    document.getElementById('bill-linked-debt-preview').textContent =
+      debt ? `Will use $${debt.actualPayment.toFixed(2)} from debt tracker` : '';
   });
 
   document.getElementById('adhoc-expense-form').addEventListener('submit', function (e) {
@@ -1440,7 +1547,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    debtEntries.push({ name, type, balance, apr, minPayment, actualPayment, loanLength });
+    debtEntries.push({ id: generateId(), name, type, balance, apr, minPayment, actualPayment, loanLength });
     saveData();
     e.target.reset();
     updateDisplay();
@@ -1566,6 +1673,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }));
         // Import debt entries with precision fixes
         debtEntries = (data.debtEntries || []).map(debt => ({
+          id: debt.id || generateId(),
           ...debt,
           balance: roundToCents(debt.balance || 0),
           minPayment: roundToCents(debt.minPayment || 0),
