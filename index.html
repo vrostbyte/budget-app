@@ -176,6 +176,20 @@
                   <label for="bill-amount">Amount (USD):</label>
                   <input type="text" id="bill-amount" placeholder="e.g., 150 or 100+50" required />
 
+                  <div id="bill-debt-link-section">
+                    <label style="display:flex;align-items:center;gap:6px;font-weight:normal;">
+                      <input type="checkbox" id="bill-link-debt-toggle" />
+                      Link to Debt Account
+                    </label>
+                    <div id="bill-debt-dropdown-wrapper" style="display:none;margin-top:6px;">
+                      <label for="bill-linked-debt">Debt Account:</label>
+                      <select id="bill-linked-debt">
+                        <option value="">-- Select debt account --</option>
+                      </select>
+                      <small id="bill-linked-debt-preview" style="color:#666;display:block;margin-top:4px;"></small>
+                    </div>
+                  </div>
+
                   <label for="bill-category">Category:</label>
                   <div class="category-container">
                     <select id="bill-category">
