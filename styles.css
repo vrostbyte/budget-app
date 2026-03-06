@@ -573,3 +573,474 @@ th.sortable:hover i {
     display: block !important;
   }
 }
+
+/* ============================ */
+/* Guide Me Wizard              */
+/* ============================ */
+
+/* Full-screen overlay — uses flex for centering (not the shared .modal class) */
+.wizard-modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.65);
+  align-items: center;
+  justify-content: center;
+}
+
+/* Floating app-window container */
+.wizard-window {
+  background: #fff;
+  width: 700px;
+  max-width: 95vw;
+  max-height: 88vh;
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Title bar — blue, mimics desktop app window */
+.wizard-title-bar {
+  background: #007bff;
+  color: #fff;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  border-radius: 12px 12px 0 0;
+}
+
+.wizard-title-text {
+  font-weight: 600;
+  font-size: 1em;
+}
+
+.wizard-close-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+  transition: color 0.15s;
+}
+
+.wizard-close-btn:hover {
+  color: #fff;
+}
+
+/* Scrollable step content area */
+.wizard-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2em 2.5em;
+  min-height: 0;
+}
+
+.wizard-headline {
+  margin: 0 0 0.4em;
+  font-size: 1.35em;
+  color: #333;
+}
+
+.wizard-guidance {
+  color: #555;
+  margin: 0 0 1.4em;
+  line-height: 1.55;
+  font-size: 0.95em;
+}
+
+/* Step fade-in animation */
+.wizard-step {
+  animation: wizFadeIn 0.22s ease;
+}
+
+@keyframes wizFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Form layout: single-column label/input pairs */
+.wizard-form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 1.2em;
+}
+
+.wizard-form-grid label {
+  font-weight: 500;
+  color: #444;
+  margin-top: 0.75em;
+  margin-bottom: 0.25em;
+  font-size: 0.92em;
+}
+
+.wizard-form-grid input,
+.wizard-form-grid select {
+  padding: 0.6em 0.8em;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.wizard-form-grid input:focus,
+.wizard-form-grid select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+}
+
+.wizard-helper-text {
+  color: #888;
+  font-size: 0.8em;
+  margin-top: 2px;
+  display: block;
+}
+
+.wizard-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 0.75em;
+}
+
+.wizard-checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+/* Summary cards for entries already added */
+.wizard-summary-list {
+  margin-bottom: 1.2em;
+}
+
+.wizard-summary-card {
+  background: #f0f7ff;
+  border: 1px solid #cce5ff;
+  border-radius: 6px;
+  padding: 0.55em 1em;
+  margin-bottom: 0.4em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.87em;
+  color: #333;
+}
+
+.wizard-summary-card-label {
+  font-weight: 500;
+}
+
+.wizard-summary-card-meta {
+  color: #555;
+  font-size: 0.92em;
+}
+
+/* Navigation row (Back / Next buttons) */
+.wizard-nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5em;
+  padding-top: 1em;
+  border-top: 1px solid #eee;
+  gap: 0.5em;
+}
+
+.wizard-nav-row--review {
+  justify-content: flex-end;
+}
+
+/* Button styles */
+.wizard-btn-primary {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.65em 1.4em;
+  font-size: 0.95em;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.wizard-btn-primary:hover {
+  background: #0056b3;
+}
+
+.wizard-btn-secondary {
+  background: #e9ecef;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 0.55em 1.1em;
+  font-size: 0.9em;
+  cursor: pointer;
+  margin-top: 0.75em;
+  transition: background 0.15s;
+}
+
+.wizard-btn-secondary:hover {
+  background: #dee2e6;
+}
+
+.wizard-btn-back {
+  background: transparent;
+  color: #555;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 0.55em 1em;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.wizard-btn-back:hover {
+  background: #f8f9fa;
+}
+
+.wizard-btn-success {
+  background: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.65em 1.4em;
+  font-size: 0.95em;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.wizard-btn-success:hover {
+  background: #1e7e34;
+}
+
+.wizard-btn-danger {
+  background: transparent;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+  border-radius: 6px;
+  padding: 0.55em 1em;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.wizard-btn-danger:hover {
+  background: #fff5f5;
+}
+
+.wizard-btn-tiny {
+  background: transparent;
+  color: #007bff;
+  border: none;
+  font-size: 0.82em;
+  cursor: pointer;
+  padding: 0 0.25em;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.wizard-skip-link {
+  font-size: 0.85em;
+  color: #999;
+  text-decoration: underline;
+}
+
+.wizard-skip-link:hover {
+  color: #555;
+}
+
+/* Review step stat cards */
+.wizard-summary-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75em;
+  margin-bottom: 1em;
+}
+
+.wizard-stat-card {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 1em;
+}
+
+.wizard-stat-card-label {
+  font-size: 0.78em;
+  color: #666;
+  margin-bottom: 0.25em;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.wizard-stat-card-value {
+  font-size: 1.3em;
+  font-weight: 700;
+  color: #333;
+}
+
+.wizard-stat-card-sub {
+  font-size: 0.82em;
+  color: #555;
+  margin-top: 0.15em;
+}
+
+/* Progress bar — fixed to the bottom of the wizard window */
+.wizard-progress-bar {
+  border-top: 1px solid #e9ecef;
+  padding: 0.85em 1.5em;
+  background: #f8f9fa;
+  border-radius: 0 0 12px 12px;
+  flex-shrink: 0;
+}
+
+.wizard-progress-track {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+}
+
+/* Connecting line behind the circles */
+.wizard-progress-track::before {
+  content: '';
+  position: absolute;
+  top: 11px;
+  left: 4%;
+  right: 4%;
+  height: 2px;
+  background: #dee2e6;
+  z-index: 0;
+}
+
+.wizard-step-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+  flex: 1;
+}
+
+.wizard-node-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #dee2e6;
+  color: #999;
+  font-size: 0.7em;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  transition: background 0.2s, color 0.2s;
+  user-select: none;
+}
+
+.wizard-node-circle.active {
+  background: #007bff;
+  color: #fff;
+}
+
+.wizard-node-circle.completed {
+  background: #28a745;
+  color: #fff;
+  cursor: pointer;
+}
+
+.wizard-node-circle.completed:hover {
+  background: #1e7e34;
+}
+
+.wizard-node-label {
+  font-size: 0.62em;
+  color: #888;
+  margin-top: 4px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Toast notification */
+.wizard-toast {
+  position: fixed;
+  bottom: 2em;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #28a745;
+  color: #fff;
+  padding: 0.75em 1.75em;
+  border-radius: 8px;
+  font-size: 0.95em;
+  z-index: 3000;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  animation: wizToastIn 0.3s ease;
+}
+
+@keyframes wizToastIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Mobile: full-screen wizard */
+@media (max-width: 768px) {
+  .wizard-modal {
+    align-items: flex-start;
+  }
+
+  .wizard-window {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    max-width: 100vw;
+    border-radius: 0;
+    margin: 0;
+  }
+
+  .wizard-body {
+    padding: 1.25em 1em;
+  }
+
+  .wizard-summary-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-node-label {
+    display: none;
+  }
+
+  .wizard-progress-bar {
+    padding: 0.75em 1em;
+    border-radius: 0;
+  }
+
+  .wizard-title-bar {
+    border-radius: 0;
+  }
+}

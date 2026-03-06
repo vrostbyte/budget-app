@@ -9,7 +9,7 @@
     />
     <title>Budget App</title>
     <!-- Link to CSS (version parameter prevents caching issues) -->
-    <link rel="stylesheet" href="styles.css?v=3.1.0" />
+    <link rel="stylesheet" href="styles.css?v=3.3.0" />
     <!-- Font Awesome for Icons (v6.4.0) -->
     <link
       rel="stylesheet"
@@ -30,6 +30,8 @@
               <span class="menu-icon">&#9776;</span> Menu
             </a>
             <div class="dropdown-content">
+              <a href="#" id="guide-me-btn">&#10024; Guide Me</a>
+              <hr />
               <a href="#" id="instructions-btn">Instructions</a>
               <a href="#" id="export-btn">Export Data (JSON)</a>
               <a href="#" id="import-btn">Import Data</a>
@@ -115,6 +117,236 @@
         </form>
       </div>
     </div>
+
+    <!-- Guide Me Wizard Modal -->
+    <div id="guide-me-modal" class="wizard-modal">
+      <div class="wizard-window">
+
+        <!-- Title Bar -->
+        <div class="wizard-title-bar">
+          <span class="wizard-title-text">&#10024; Guide Me &mdash; Budget Setup Wizard</span>
+          <button class="wizard-close-btn" id="wizard-close-btn" title="Close wizard">&times;</button>
+        </div>
+
+        <!-- Step Content -->
+        <div class="wizard-body" id="wizard-body">
+
+          <!-- Step 1: Initial Setup -->
+          <div class="wizard-step" id="wizard-step-1">
+            <h2 class="wizard-headline">Let's set up your budget</h2>
+            <p class="wizard-guidance">Start with the basics &mdash; when should your budget begin, and what account are we working with?</p>
+            <div class="wizard-form-grid">
+              <label for="wiz-start-date">Start Date</label>
+              <input type="date" id="wiz-start-date" />
+              <label for="wiz-projection">Projection Length (months)</label>
+              <input type="number" id="wiz-projection" min="1" max="12" value="3" />
+              <label for="wiz-account-name">Account Name</label>
+              <input type="text" id="wiz-account-name" placeholder="e.g., My Checking" />
+              <label for="wiz-balance">Current Balance</label>
+              <input type="text" id="wiz-balance" placeholder="e.g., 1500 or 1200+300" />
+            </div>
+            <div class="wizard-nav-row">
+              <span></span>
+              <button class="wizard-btn-primary" id="wiz-step1-next">Next &#8594;</button>
+            </div>
+          </div>
+
+          <!-- Step 2: Income Sources -->
+          <div class="wizard-step" id="wizard-step-2" style="display:none">
+            <h2 class="wizard-headline">How does money come in?</h2>
+            <p class="wizard-guidance">Add each source of income &mdash; your paycheck, side gig, freelance work, anything regular.</p>
+            <div class="wizard-summary-list" id="wiz-income-list"></div>
+            <div class="wizard-entry-form">
+              <div class="wizard-form-grid">
+                <label for="wiz-income-name">Income Name</label>
+                <input type="text" id="wiz-income-name" placeholder="e.g., Paycheck" />
+                <label for="wiz-income-amount">Amount per Paycheck</label>
+                <input type="text" id="wiz-income-amount" placeholder="e.g., 1800 or 900*2" />
+                <label for="wiz-income-freq">Frequency</label>
+                <select id="wiz-income-freq">
+                  <option value="Weekly">Weekly</option>
+                  <option value="Bi-weekly" selected>Bi-weekly</option>
+                  <option value="Monthly">Monthly</option>
+                  <option value="One-time">One-time</option>
+                </select>
+                <label for="wiz-income-start">Start Date</label>
+                <input type="date" id="wiz-income-start" />
+              </div>
+              <button class="wizard-btn-secondary" id="wiz-income-add">+ Add Income</button>
+            </div>
+            <div class="wizard-nav-row">
+              <button class="wizard-btn-back" id="wiz-step2-back">&#8592; Back</button>
+              <button class="wizard-btn-primary" id="wiz-step2-next">Next &#8594;</button>
+            </div>
+          </div>
+
+          <!-- Step 3: Debt Accounts -->
+          <div class="wizard-step" id="wizard-step-3" style="display:none">
+            <h2 class="wizard-headline">What do you owe?</h2>
+            <p class="wizard-guidance">Track your debts here &mdash; credit cards, car loans, student loans, mortgage, medical bills, anything. The more detail you provide now, the easier the next step will be.</p>
+            <div class="wizard-summary-list" id="wiz-debt-list"></div>
+            <div class="wizard-entry-form">
+              <div class="wizard-form-grid">
+                <label for="wiz-debt-name">Creditor Name</label>
+                <input type="text" id="wiz-debt-name" placeholder="e.g., Chase Visa" />
+                <label for="wiz-debt-type">Debt Type</label>
+                <select id="wiz-debt-type">
+                  <option value="Credit Card">Credit Card</option>
+                  <option value="Auto Loan">Auto Loan</option>
+                  <option value="Personal Loan">Personal Loan</option>
+                  <option value="Student Loan">Student Loan</option>
+                  <option value="Mortgage">Mortgage</option>
+                  <option value="Medical Debt">Medical Debt</option>
+                  <option value="Other">Other</option>
+                </select>
+                <label for="wiz-debt-balance">Current Balance</label>
+                <input type="text" id="wiz-debt-balance" placeholder="e.g., 4200" />
+                <label for="wiz-debt-apr">APR %</label>
+                <input type="text" id="wiz-debt-apr" placeholder="e.g., 19.99" />
+                <label for="wiz-debt-min">Minimum Payment</label>
+                <input type="text" id="wiz-debt-min" placeholder="e.g., 35" />
+                <label for="wiz-debt-actual">Actual Monthly Payment</label>
+                <input type="text" id="wiz-debt-actual" placeholder="e.g., 100" />
+                <label for="wiz-debt-term">Loan Term (months)</label>
+                <input type="number" id="wiz-debt-term" placeholder="0" min="0" value="0" />
+                <small class="wizard-helper-text">Enter 0 for credit cards (revolving)</small>
+                <div id="wiz-debt-asset-row" style="display:none">
+                  <label for="wiz-debt-asset">Est. Asset Value</label>
+                  <input type="text" id="wiz-debt-asset" placeholder="e.g., 18000" />
+                </div>
+              </div>
+              <button class="wizard-btn-secondary" id="wiz-debt-add">+ Add Debt</button>
+            </div>
+            <div class="wizard-nav-row">
+              <button class="wizard-btn-back" id="wiz-step3-back">&#8592; Back</button>
+              <div style="display:flex;align-items:center;gap:1em">
+                <a href="#" class="wizard-skip-link" id="wiz-debt-skip">Skip this step</a>
+                <button class="wizard-btn-primary" id="wiz-step3-next">Next &#8594;</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Monthly Bills -->
+          <div class="wizard-step" id="wizard-step-4" style="display:none">
+            <h2 class="wizard-headline">Where does your money go each month?</h2>
+            <p class="wizard-guidance">These are your recurring monthly expenses &mdash; rent, utilities, subscriptions, loan payments. You can link a bill directly to a debt account so the payment amount stays in sync.</p>
+            <div class="wizard-summary-list" id="wiz-bill-list"></div>
+            <div class="wizard-entry-form">
+              <div class="wizard-form-grid">
+                <label for="wiz-bill-name">Bill Name</label>
+                <input type="text" id="wiz-bill-name" placeholder="e.g., Rent" />
+                <label for="wiz-bill-day">Day of Month Due (1&ndash;31)</label>
+                <input type="number" id="wiz-bill-day" min="1" max="31" placeholder="e.g., 1" />
+                <label for="wiz-bill-amount">Amount</label>
+                <input type="text" id="wiz-bill-amount" placeholder="e.g., 1200" />
+                <label class="wizard-checkbox-label">
+                  <input type="checkbox" id="wiz-bill-link-toggle" />
+                  Link to a Debt Account
+                </label>
+                <div id="wiz-bill-debt-wrapper" style="display:none">
+                  <label for="wiz-bill-linked-debt">Select Debt Account</label>
+                  <select id="wiz-bill-linked-debt">
+                    <option value="">-- Select debt account --</option>
+                  </select>
+                  <small id="wiz-bill-debt-preview" class="wizard-helper-text"></small>
+                </div>
+                <label for="wiz-bill-category">Category</label>
+                <div style="display:flex;gap:0.5em;align-items:center">
+                  <select id="wiz-bill-category" style="flex:1"></select>
+                  <button type="button" class="wizard-btn-tiny" id="wiz-bill-add-category">+ Add</button>
+                </div>
+              </div>
+              <button class="wizard-btn-secondary" id="wiz-bill-add">+ Add Bill</button>
+            </div>
+            <div class="wizard-nav-row">
+              <button class="wizard-btn-back" id="wiz-step4-back">&#8592; Back</button>
+              <button class="wizard-btn-primary" id="wiz-step4-next">Next &#8594;</button>
+            </div>
+          </div>
+
+          <!-- Step 5: One-Off Items -->
+          <div class="wizard-step" id="wizard-step-5" style="display:none">
+            <h2 class="wizard-headline">Any one-time income or expenses coming up?</h2>
+            <p class="wizard-guidance">Think about things outside your normal monthly cycle &mdash; a tax refund, a birthday check, concert tickets, or a big purchase you're planning.</p>
+            <div class="wizard-summary-list" id="wiz-adhoc-list"></div>
+            <div class="wizard-entry-form">
+              <div class="wizard-form-grid">
+                <label for="wiz-adhoc-name">Name</label>
+                <input type="text" id="wiz-adhoc-name" placeholder="e.g., Tax Refund" />
+                <label for="wiz-adhoc-date">Date</label>
+                <input type="date" id="wiz-adhoc-date" />
+                <label for="wiz-adhoc-amount">Amount</label>
+                <input type="text" id="wiz-adhoc-amount" placeholder="e.g., 500" />
+                <label for="wiz-adhoc-type">Type</label>
+                <select id="wiz-adhoc-type">
+                  <option value="income">Income Adjustment (adds to balance)</option>
+                  <option value="expense">Expense (deducts from balance)</option>
+                </select>
+                <div id="wiz-adhoc-category-row">
+                  <label for="wiz-adhoc-category">Category</label>
+                  <select id="wiz-adhoc-category"></select>
+                </div>
+              </div>
+              <button class="wizard-btn-secondary" id="wiz-adhoc-add">+ Add Item</button>
+            </div>
+            <div class="wizard-nav-row">
+              <button class="wizard-btn-back" id="wiz-step5-back">&#8592; Back</button>
+              <div style="display:flex;align-items:center;gap:1em">
+                <a href="#" class="wizard-skip-link" id="wiz-adhoc-skip">Skip this step</a>
+                <button class="wizard-btn-primary" id="wiz-step5-next">Next &#8594;</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 6: Review & Complete -->
+          <div class="wizard-step" id="wizard-step-6" style="display:none">
+            <h2 class="wizard-headline">Here's your budget at a glance</h2>
+            <p class="wizard-guidance">Review what you've set up. Everything looks good? Hit Complete to launch your budget!</p>
+            <div class="wizard-summary-stats" id="wiz-review-stats"></div>
+            <div class="wizard-nav-row wizard-nav-row--review">
+              <button class="wizard-btn-back" id="wiz-step6-back">&#8592; Back</button>
+              <button class="wizard-btn-danger" id="wiz-start-over">Start Over</button>
+              <button class="wizard-btn-success" id="wiz-complete">Complete &#10003;</button>
+            </div>
+          </div>
+
+        </div><!-- /.wizard-body -->
+
+        <!-- Progress Bar -->
+        <div class="wizard-progress-bar" id="wizard-progress-bar">
+          <div class="wizard-progress-track">
+            <div class="wizard-step-node" data-step="1">
+              <div class="wizard-node-circle active" id="wiz-node-1">1</div>
+              <span class="wizard-node-label">Initial Setup</span>
+            </div>
+            <div class="wizard-step-node" data-step="2">
+              <div class="wizard-node-circle" id="wiz-node-2">2</div>
+              <span class="wizard-node-label">Income</span>
+            </div>
+            <div class="wizard-step-node" data-step="3">
+              <div class="wizard-node-circle" id="wiz-node-3">3</div>
+              <span class="wizard-node-label">Debt</span>
+            </div>
+            <div class="wizard-step-node" data-step="4">
+              <div class="wizard-node-circle" id="wiz-node-4">4</div>
+              <span class="wizard-node-label">Expenses</span>
+            </div>
+            <div class="wizard-step-node" data-step="5">
+              <div class="wizard-node-circle" id="wiz-node-5">5</div>
+              <span class="wizard-node-label">One-Offs</span>
+            </div>
+            <div class="wizard-step-node" data-step="6">
+              <div class="wizard-node-circle" id="wiz-node-6">6</div>
+              <span class="wizard-node-label">Review</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.wizard-window -->
+    </div><!-- /#guide-me-modal -->
+
+    <!-- Wizard Toast Notification -->
+    <div id="wizard-toast" class="wizard-toast" style="display:none"></div>
 
     <main>
       <div class="container">
@@ -517,11 +749,11 @@
 
       <!-- Footer -->
       <footer>
-        <p>&copy; 2025 Budget App | v3.1.0</p>
+        <p>&copy; 2025 Budget App | v3.3.0</p>
       </footer>
     </main>
 
     <!-- Link to JavaScript (version parameter prevents caching issues) -->
-    <script src="app.js?v=3.1.0"></script>
+    <script src="app.js?v=3.3.0"></script>
   </body>
 </html>
