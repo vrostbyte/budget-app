@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ---
 
+## [3.3.0] - 2026-03-06
+
+### Added
+- **"Guide Me" Onboarding Wizard** — A step-by-step budget setup assistant accessible from the top of the Menu dropdown. Opens as a floating modal overlay styled like a standalone desktop application window (blue title bar, drop shadow, rounded corners). Guides users through 6 steps:
+  1. **Initial Setup** — Sets start date, projection length, account name, and current balance.
+  2. **Income Sources** — Add multiple income entries one at a time (name, amount, frequency, start date). Each entry is saved immediately to `incomeEntries[]`.
+  3. **Debt Accounts** — Add multiple debt entries (creditor, type, balance, APR, min/actual payments, term). Est. Asset Value field shown conditionally for Auto Loan and Mortgage types. "Skip this step" link available.
+  4. **Monthly Expenses** — Add recurring bills with optional debt account linking (mirrors existing bill form UX). "+ Add Category" inline button. Linked bills show a 🔗 icon.
+  5. **One-Off Items** — Add one-time income adjustments or adhoc expenses by date. "Skip this step" link available.
+  6. **Review & Complete** — Displays stat cards summarizing account, income sources, debts, bills, and one-off items with totals. "Start Over" clears wizard-entered data after confirmation. "Complete" closes wizard and calls `updateDisplay()`.
+- **Progress Bar** — Persistent 6-circle progress indicator at the bottom of the wizard window. Current step is highlighted blue, completed steps are green and clickable (navigate back), future steps are gray.
+- **Continuous Saving** — `saveData()` is called after each entry addition and after Step 1, so no data is lost if the browser is closed mid-wizard.
+- **Mobile Full-Screen Mode** — On screens ≤768px the wizard expands to fill the full viewport (100vw × 100vh); progress labels are hidden to conserve space.
+- **Wizard Toast** — A brief green toast notification appears when the wizard is completed successfully.
+
+### Technical
+- All wizard HTML added to `index.html` as a new `#guide-me-modal` element (uses `.wizard-modal` class, not the shared `.modal` class, to allow `display:flex` centering).
+- All wizard CSS appended to `styles.css` under the `/* Guide Me Wizard */` section.
+- All wizard JS added to `app.js` inside the existing `DOMContentLoaded` wrapper, reusing `saveData()`, `parseMathExpression()`, `generateId()`, `getBillEffectiveAmount()`, `isAssetDebtType()`, `updateDisplay()`, `populateBillDebtDropdown()`, `populateCategories()`, and `roundToCents()`.
+
+---
+
 ## [3.2.0] - 2026-03-06
 
 ### Added

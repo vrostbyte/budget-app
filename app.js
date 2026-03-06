@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // =======================
   // App Version (update this when releasing new versions)
   // =======================
-  const APP_VERSION = '3.1.0';
+  const APP_VERSION = '3.3.0';
   
   // =======================
   // Global Data Variables
@@ -2125,5 +2125,591 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('load-sample-btn').addEventListener('click', function (e) {
     e.preventDefault();
     loadSampleData();
+  });
+
+  // =======================
+  // Guide Me Wizard
+  // =======================
+
+  // Wizard state
+  const wizard = {
+    currentStep: 1,
+    maxReached: 1,   // highest step visited — controls progress bar clickability
+    snapshot: null,  // captured at open() for "Start Over"
+  };
+
+  // Open wizard: capture snapshot, pre-populate Step 1, go to step 1
+  function wizardOpen() {
+    wizard.snapshot = {
+      billsLen: bills.length,
+      incomeLen: incomeEntries.length,
+      debtsLen: debtEntries.length,
+      adhocLen: adhocExpenses.length,
+      adjustmentsLen: runningBudgetAdjustments.length,
+      accountBalance: accountBalance,
+      accountName: accountName,
+      startDate: startDate ? new Date(startDate) : null,
+      projectionLength: projectionLength,
+    };
+    wizard.maxReached = 1;
+
+    // Pre-populate Step 1 with current values
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('wiz-start-date').value = startDate
+      ? startDate.toISOString().split('T')[0]
+      : today;
+    document.getElementById('wiz-projection').value = projectionLength || 3;
+    document.getElementById('wiz-account-name').value = accountName || '';
+    document.getElementById('wiz-balance').value = accountBalance ? accountBalance.toFixed(2) : '';
+
+    // Pre-populate Step 2 income start date
+    document.getElementById('wiz-income-start').value = today;
+
+    // Pre-populate Step 5 date
+    document.getElementById('wiz-adhoc-date').value = today;
+
+    // Clear all summary lists
+    ['wiz-income-list', 'wiz-debt-list', 'wiz-bill-list', 'wiz-adhoc-list'].forEach(id => {
+      document.getElementById(id).innerHTML = '';
+    });
+
+    // Populate category selects
+    wizardPopulateCategories();
+
+    // Hide all steps, show step 1
+    for (let i = 1; i <= 6; i++) {
+      const el = document.getElementById('wizard-step-' + i);
+      if (el) el.style.display = i === 1 ? 'block' : 'none';
+    }
+    wizard.currentStep = 1;
+    wizardUpdateProgressBar();
+
+    // Show modal
+    document.getElementById('guide-me-modal').style.display = 'flex';
+  }
+
+  // Close wizard with confirmation
+  function wizardClose() {
+    if (confirm('Your progress has been saved. You can re-enter your data using the forms anytime.\n\nClose the wizard?')) {
+      document.getElementById('guide-me-modal').style.display = 'none';
+    }
+  }
+
+  // Navigate to a specific step
+  function wizardGoToStep(n) {
+    const current = document.getElementById('wizard-step-' + wizard.currentStep);
+    if (current) current.style.display = 'none';
+
+    const next = document.getElementById('wizard-step-' + n);
+    if (next) next.style.display = 'block';
+
+    wizard.currentStep = n;
+    wizard.maxReached = Math.max(wizard.maxReached, n);
+    wizardUpdateProgressBar();
+
+    // On entering Step 4, refresh bill category select and debt dropdown
+    if (n === 4) {
+      wizardPopulateCategories();
+      // Reset debt link toggle
+      const toggle = document.getElementById('wiz-bill-link-toggle');
+      if (toggle && toggle.checked) {
+        toggle.checked = false;
+        document.getElementById('wiz-bill-debt-wrapper').style.display = 'none';
+        document.getElementById('wiz-bill-amount').disabled = false;
+      }
+    }
+
+    // On entering Step 5, refresh category select and reset type
+    if (n === 5) {
+      wizardPopulateCategories();
+      wizardToggleAdhocCategory();
+    }
+
+    // On entering Step 6, render review
+    if (n === 6) {
+      wizardRenderReview();
+    }
+
+    // Scroll body to top
+    const body = document.getElementById('wizard-body');
+    if (body) body.scrollTop = 0;
+  }
+
+  // Update progress bar circles: completed (green, clickable) / active (blue) / future (gray)
+  function wizardUpdateProgressBar() {
+    for (let i = 1; i <= 6; i++) {
+      const circle = document.getElementById('wiz-node-' + i);
+      if (!circle) continue;
+      circle.classList.remove('active', 'completed');
+
+      // Remove any old click listeners by cloning
+      const freshCircle = circle.cloneNode(true);
+      circle.parentNode.replaceChild(freshCircle, circle);
+      const newCircle = document.getElementById('wiz-node-' + i);
+
+      if (i < wizard.currentStep && i <= wizard.maxReached) {
+        newCircle.classList.add('completed');
+        const stepNum = i;
+        newCircle.addEventListener('click', function () {
+          wizardGoToStep(stepNum);
+        });
+      } else if (i === wizard.currentStep) {
+        newCircle.classList.add('active');
+      }
+    }
+  }
+
+  // Populate wizard category selects from the global categories array
+  function wizardPopulateCategories() {
+    ['wiz-bill-category', 'wiz-adhoc-category'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      const current = sel.value;
+      sel.innerHTML = '';
+      categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        sel.appendChild(opt);
+      });
+      if (current) sel.value = current;
+    });
+  }
+
+  // Show/hide the adhoc category row based on type selection
+  function wizardToggleAdhocCategory() {
+    const type = document.getElementById('wiz-adhoc-type').value;
+    const row = document.getElementById('wiz-adhoc-category-row');
+    if (row) row.style.display = type === 'expense' ? 'block' : 'none';
+  }
+
+  // Render income summary cards
+  function wizardRenderIncomeList() {
+    const list = document.getElementById('wiz-income-list');
+    list.innerHTML = '';
+    const sessionIncome = incomeEntries.slice(wizard.snapshot.incomeLen);
+    sessionIncome.forEach(entry => {
+      const card = document.createElement('div');
+      card.className = 'wizard-summary-card';
+      card.innerHTML = `<span class="wizard-summary-card-label">${entry.name}</span>` +
+        `<span class="wizard-summary-card-meta">$${entry.amount.toFixed(2)} &bull; ${entry.frequency}</span>`;
+      list.appendChild(card);
+    });
+  }
+
+  // Render debt summary cards
+  function wizardRenderDebtList() {
+    const list = document.getElementById('wiz-debt-list');
+    list.innerHTML = '';
+    const sessionDebts = debtEntries.slice(wizard.snapshot.debtsLen);
+    sessionDebts.forEach(entry => {
+      const card = document.createElement('div');
+      card.className = 'wizard-summary-card';
+      card.innerHTML = `<span class="wizard-summary-card-label">${entry.name} (${entry.type})</span>` +
+        `<span class="wizard-summary-card-meta">$${entry.balance.toFixed(2)} @ ${entry.apr}%</span>`;
+      list.appendChild(card);
+    });
+  }
+
+  // Render bill summary cards
+  function wizardRenderBillList() {
+    const list = document.getElementById('wiz-bill-list');
+    list.innerHTML = '';
+    const sessionBills = bills.slice(wizard.snapshot.billsLen);
+    sessionBills.forEach(entry => {
+      const effectiveAmt = getBillEffectiveAmount(entry);
+      const linkedIcon = entry.linkedDebtId ? ' &#128279;' : '';
+      const card = document.createElement('div');
+      card.className = 'wizard-summary-card';
+      card.innerHTML = `<span class="wizard-summary-card-label">${entry.name}${linkedIcon}</span>` +
+        `<span class="wizard-summary-card-meta">Day ${entry.date} &bull; $${effectiveAmt.toFixed(2)}</span>`;
+      list.appendChild(card);
+    });
+  }
+
+  // Render adhoc/adjustment summary cards
+  function wizardRenderAdhocList() {
+    const list = document.getElementById('wiz-adhoc-list');
+    list.innerHTML = '';
+    const sessionAdhoc = adhocExpenses.slice(wizard.snapshot.adhocLen);
+    const sessionAdj = runningBudgetAdjustments.slice(wizard.snapshot.adjustmentsLen);
+    sessionAdhoc.forEach(entry => {
+      const card = document.createElement('div');
+      card.className = 'wizard-summary-card';
+      card.innerHTML = `<span class="wizard-summary-card-label">${entry.name} (Expense)</span>` +
+        `<span class="wizard-summary-card-meta">${entry.date} &bull; -$${entry.amount.toFixed(2)}</span>`;
+      list.appendChild(card);
+    });
+    sessionAdj.forEach(entry => {
+      const card = document.createElement('div');
+      card.className = 'wizard-summary-card';
+      card.innerHTML = `<span class="wizard-summary-card-label">${entry.event} (Income)</span>` +
+        `<span class="wizard-summary-card-meta">${entry.date} &bull; +$${entry.amount.toFixed(2)}</span>`;
+      list.appendChild(card);
+    });
+  }
+
+  // Render Step 6 review stat cards
+  function wizardRenderReview() {
+    const s = wizard.snapshot;
+    const sessionIncome = incomeEntries.slice(s.incomeLen);
+    const sessionDebts = debtEntries.slice(s.debtsLen);
+    const sessionBills = bills.slice(s.billsLen);
+    const sessionAdhoc = adhocExpenses.slice(s.adhocLen);
+    const sessionAdj = runningBudgetAdjustments.slice(s.adjustmentsLen);
+
+    // Monthly income estimate
+    const freqMult = { 'Weekly': 4.33, 'Bi-weekly': 2.17, 'Monthly': 1, 'One-time': 0 };
+    const monthlyIncome = sessionIncome.reduce((sum, e) => sum + (e.amount * (freqMult[e.frequency] || 0)), 0);
+
+    // Monthly expenses total (uses live debt amounts for linked bills)
+    const monthlyExpenses = sessionBills.reduce((sum, b) => sum + getBillEffectiveAmount(b), 0);
+
+    // Total debt outstanding
+    const totalDebt = sessionDebts.reduce((sum, d) => sum + d.balance, 0);
+
+    const statsEl = document.getElementById('wiz-review-stats');
+    statsEl.innerHTML =
+      `<div class="wizard-stat-card">` +
+      `<div class="wizard-stat-card-label">Account</div>` +
+      `<div class="wizard-stat-card-value">${accountName || 'My Account'}</div>` +
+      `<div class="wizard-stat-card-sub">Balance: $${accountBalance.toFixed(2)}</div>` +
+      `</div>` +
+      `<div class="wizard-stat-card">` +
+      `<div class="wizard-stat-card-label">Income Sources</div>` +
+      `<div class="wizard-stat-card-value">${sessionIncome.length}</div>` +
+      `<div class="wizard-stat-card-sub">~$${monthlyIncome.toFixed(2)}/mo</div>` +
+      `</div>` +
+      `<div class="wizard-stat-card">` +
+      `<div class="wizard-stat-card-label">Debt Accounts</div>` +
+      `<div class="wizard-stat-card-value">${sessionDebts.length}</div>` +
+      `<div class="wizard-stat-card-sub">Total: $${totalDebt.toFixed(2)}</div>` +
+      `</div>` +
+      `<div class="wizard-stat-card">` +
+      `<div class="wizard-stat-card-label">Monthly Bills</div>` +
+      `<div class="wizard-stat-card-value">${sessionBills.length}</div>` +
+      `<div class="wizard-stat-card-sub">$${monthlyExpenses.toFixed(2)}/mo</div>` +
+      `</div>` +
+      `<div class="wizard-stat-card">` +
+      `<div class="wizard-stat-card-label">One-Off Items</div>` +
+      `<div class="wizard-stat-card-value">${sessionAdhoc.length + sessionAdj.length}</div>` +
+      `<div class="wizard-stat-card-sub">&nbsp;</div>` +
+      `</div>`;
+  }
+
+  // Show a brief toast notification
+  function wizardShowToast(message) {
+    const toast = document.getElementById('wizard-toast');
+    toast.textContent = message;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 2800);
+  }
+
+  // ---- Guide Me Button ----
+  document.getElementById('guide-me-btn').addEventListener('click', function (e) {
+    e.preventDefault();
+    wizardOpen();
+  });
+
+  // ---- Close Button (X) ----
+  document.getElementById('wizard-close-btn').addEventListener('click', function () {
+    wizardClose();
+  });
+
+  // ---- Step 1: Save setup and advance ----
+  document.getElementById('wiz-step1-next').addEventListener('click', function () {
+    const dateVal = document.getElementById('wiz-start-date').value;
+    const projVal = parseInt(document.getElementById('wiz-projection').value, 10);
+    const nameVal = document.getElementById('wiz-account-name').value.trim();
+    const balVal = parseMathExpression(document.getElementById('wiz-balance').value);
+
+    if (!dateVal) { alert('Please enter a start date.'); return; }
+    if (!nameVal) { alert('Please enter an account name.'); return; }
+    if (isNaN(projVal) || projVal < 1 || projVal > 12) { alert('Projection length must be between 1 and 12 months.'); return; }
+
+    startDate = new Date(dateVal + 'T00:00:00');
+    projectionLength = projVal;
+    accountName = nameVal;
+    accountBalance = balVal;
+    saveData();
+    wizardGoToStep(2);
+  });
+
+  // ---- Step 2: Add income entry ----
+  document.getElementById('wiz-income-add').addEventListener('click', function () {
+    const name = document.getElementById('wiz-income-name').value.trim();
+    const amount = parseMathExpression(document.getElementById('wiz-income-amount').value);
+    const frequency = document.getElementById('wiz-income-freq').value;
+    const incStart = document.getElementById('wiz-income-start').value;
+
+    if (!name) { alert('Please enter an income name.'); return; }
+    if (!amount || amount <= 0) { alert('Please enter a valid amount.'); return; }
+
+    incomeEntries.push({ name, amount, frequency, startDate: incStart });
+    saveData();
+
+    // Clear entry fields
+    document.getElementById('wiz-income-name').value = '';
+    document.getElementById('wiz-income-amount').value = '';
+
+    wizardRenderIncomeList();
+  });
+
+  document.getElementById('wiz-step2-back').addEventListener('click', function () {
+    wizardGoToStep(1);
+  });
+
+  document.getElementById('wiz-step2-next').addEventListener('click', function () {
+    wizardGoToStep(3);
+  });
+
+  // ---- Step 3: Debt type change — show/hide asset value ----
+  document.getElementById('wiz-debt-type').addEventListener('change', function () {
+    const assetRow = document.getElementById('wiz-debt-asset-row');
+    assetRow.style.display = isAssetDebtType(this.value) ? 'block' : 'none';
+    if (!isAssetDebtType(this.value)) {
+      document.getElementById('wiz-debt-asset').value = '';
+    }
+  });
+
+  // ---- Step 3: Add debt entry ----
+  document.getElementById('wiz-debt-add').addEventListener('click', function () {
+    const name = document.getElementById('wiz-debt-name').value.trim();
+    const type = document.getElementById('wiz-debt-type').value;
+    const balance = parseMathExpression(document.getElementById('wiz-debt-balance').value);
+    const apr = parseFloat(document.getElementById('wiz-debt-apr').value) || 0;
+    const minPayment = parseMathExpression(document.getElementById('wiz-debt-min').value);
+    const actualPayment = parseMathExpression(document.getElementById('wiz-debt-actual').value);
+    const termMonths = parseInt(document.getElementById('wiz-debt-term').value, 10) || 0;
+    const assetValue = isAssetDebtType(type)
+      ? parseMathExpression(document.getElementById('wiz-debt-asset').value)
+      : 0;
+
+    if (!name) { alert('Please enter a creditor name.'); return; }
+    if (balance <= 0) { alert('Please enter a valid balance.'); return; }
+
+    debtEntries.push({
+      id: generateId(),
+      name,
+      type,
+      balance: roundToCents(balance),
+      apr,
+      minPayment: roundToCents(minPayment),
+      actualPayment: roundToCents(actualPayment),
+      termMonths,
+      assetValue: roundToCents(assetValue),
+    });
+    saveData();
+
+    // Clear fields
+    document.getElementById('wiz-debt-name').value = '';
+    document.getElementById('wiz-debt-balance').value = '';
+    document.getElementById('wiz-debt-apr').value = '';
+    document.getElementById('wiz-debt-min').value = '';
+    document.getElementById('wiz-debt-actual').value = '';
+    document.getElementById('wiz-debt-term').value = '0';
+    document.getElementById('wiz-debt-asset').value = '';
+    document.getElementById('wiz-debt-type').value = 'Credit Card';
+    document.getElementById('wiz-debt-asset-row').style.display = 'none';
+
+    wizardRenderDebtList();
+  });
+
+  document.getElementById('wiz-step3-back').addEventListener('click', function () {
+    wizardGoToStep(2);
+  });
+
+  document.getElementById('wiz-step3-next').addEventListener('click', function () {
+    wizardGoToStep(4);
+  });
+
+  document.getElementById('wiz-debt-skip').addEventListener('click', function (e) {
+    e.preventDefault();
+    wizardGoToStep(4);
+  });
+
+  // ---- Step 4: Bill-debt link toggle ----
+  document.getElementById('wiz-bill-link-toggle').addEventListener('change', function () {
+    const wrapper = document.getElementById('wiz-bill-debt-wrapper');
+    const amountInput = document.getElementById('wiz-bill-amount');
+    if (this.checked) {
+      wrapper.style.display = 'block';
+      amountInput.disabled = true;
+      populateBillDebtDropdown(document.getElementById('wiz-bill-linked-debt'));
+    } else {
+      wrapper.style.display = 'none';
+      amountInput.disabled = false;
+      document.getElementById('wiz-bill-linked-debt').value = '';
+      document.getElementById('wiz-bill-debt-preview').textContent = '';
+    }
+  });
+
+  document.getElementById('wiz-bill-linked-debt').addEventListener('change', function () {
+    const debt = debtEntries.find(d => d.id === this.value);
+    document.getElementById('wiz-bill-debt-preview').textContent =
+      debt ? `Will use $${debt.actualPayment.toFixed(2)} from debt tracker` : '';
+  });
+
+  // ---- Step 4: Add category (inline) ----
+  document.getElementById('wiz-bill-add-category').addEventListener('click', function () {
+    const newCat = prompt('Enter new category name:');
+    if (newCat && newCat.trim()) {
+      const trimmed = newCat.trim();
+      if (!categories.includes(trimmed)) {
+        categories.push(trimmed);
+        saveData();
+        wizardPopulateCategories();
+        populateCategories(); // keep main app in sync
+        document.getElementById('wiz-bill-category').value = trimmed;
+      } else {
+        alert('This category already exists.');
+      }
+    }
+  });
+
+  // ---- Step 4: Add bill entry ----
+  document.getElementById('wiz-bill-add').addEventListener('click', function () {
+    const name = document.getElementById('wiz-bill-name').value.trim();
+    const day = parseInt(document.getElementById('wiz-bill-day').value, 10);
+    const linkedDebtId = document.getElementById('wiz-bill-link-toggle').checked
+      ? (document.getElementById('wiz-bill-linked-debt').value || null)
+      : null;
+    const amount = linkedDebtId
+      ? roundToCents((debtEntries.find(d => d.id === linkedDebtId) || {}).actualPayment || 0)
+      : parseMathExpression(document.getElementById('wiz-bill-amount').value);
+    const category = document.getElementById('wiz-bill-category').value;
+
+    if (!name) { alert('Please enter a bill name.'); return; }
+    if (isNaN(day) || day < 1 || day > 31) { alert('Please enter a valid day of the month (1–31).'); return; }
+    if (!linkedDebtId && amount <= 0) { alert('Please enter a valid amount.'); return; }
+
+    bills.push({ name, date: day, amount: roundToCents(amount), category, linkedDebtId });
+    saveData();
+
+    // Clear entry fields
+    document.getElementById('wiz-bill-name').value = '';
+    document.getElementById('wiz-bill-day').value = '';
+    document.getElementById('wiz-bill-amount').value = '';
+    document.getElementById('wiz-bill-amount').disabled = false;
+    document.getElementById('wiz-bill-link-toggle').checked = false;
+    document.getElementById('wiz-bill-debt-wrapper').style.display = 'none';
+    document.getElementById('wiz-bill-linked-debt').value = '';
+    document.getElementById('wiz-bill-debt-preview').textContent = '';
+
+    wizardRenderBillList();
+  });
+
+  document.getElementById('wiz-step4-back').addEventListener('click', function () {
+    wizardGoToStep(3);
+  });
+
+  document.getElementById('wiz-step4-next').addEventListener('click', function () {
+    wizardGoToStep(5);
+  });
+
+  // ---- Step 5: Type change — show/hide category ----
+  document.getElementById('wiz-adhoc-type').addEventListener('change', wizardToggleAdhocCategory);
+
+  // ---- Step 5: Add one-off item ----
+  document.getElementById('wiz-adhoc-add').addEventListener('click', function () {
+    const name = document.getElementById('wiz-adhoc-name').value.trim();
+    const date = document.getElementById('wiz-adhoc-date').value;
+    const amount = parseMathExpression(document.getElementById('wiz-adhoc-amount').value);
+    const type = document.getElementById('wiz-adhoc-type').value;
+    const category = document.getElementById('wiz-adhoc-category').value;
+
+    if (!name) { alert('Please enter a name.'); return; }
+    if (!date) { alert('Please enter a date.'); return; }
+    if (!amount || amount <= 0) { alert('Please enter a valid amount.'); return; }
+
+    if (type === 'income') {
+      runningBudgetAdjustments.push({ date, amount: roundToCents(amount), event: name });
+    } else {
+      adhocExpenses.push({ name, date, amount: roundToCents(amount), category });
+    }
+    saveData();
+
+    // Clear entry fields
+    document.getElementById('wiz-adhoc-name').value = '';
+    document.getElementById('wiz-adhoc-amount').value = '';
+
+    wizardRenderAdhocList();
+  });
+
+  document.getElementById('wiz-step5-back').addEventListener('click', function () {
+    wizardGoToStep(4);
+  });
+
+  document.getElementById('wiz-step5-next').addEventListener('click', function () {
+    wizardGoToStep(6);
+  });
+
+  document.getElementById('wiz-adhoc-skip').addEventListener('click', function (e) {
+    e.preventDefault();
+    wizardGoToStep(6);
+  });
+
+  // ---- Step 6: Back button ----
+  document.getElementById('wiz-step6-back').addEventListener('click', function () {
+    wizardGoToStep(5);
+  });
+
+  // ---- Step 6: Start Over ----
+  document.getElementById('wiz-start-over').addEventListener('click', function () {
+    if (!confirm('This will clear everything you entered in the wizard. Are you sure?')) return;
+    const s = wizard.snapshot;
+
+    // Truncate arrays to pre-wizard state
+    bills.length = s.billsLen;
+    incomeEntries.length = s.incomeLen;
+    debtEntries.length = s.debtsLen;
+    adhocExpenses.length = s.adhocLen;
+    runningBudgetAdjustments.length = s.adjustmentsLen;
+
+    // Restore scalar values
+    accountBalance = s.accountBalance;
+    accountName = s.accountName;
+    startDate = s.startDate;
+    projectionLength = s.projectionLength;
+    saveData();
+
+    // Reset state and restart from Step 1
+    wizard.maxReached = 1;
+
+    // Clear summary lists
+    ['wiz-income-list', 'wiz-debt-list', 'wiz-bill-list', 'wiz-adhoc-list'].forEach(id => {
+      document.getElementById(id).innerHTML = '';
+    });
+
+    // Re-pre-populate Step 1
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('wiz-start-date').value = startDate
+      ? startDate.toISOString().split('T')[0]
+      : today;
+    document.getElementById('wiz-projection').value = projectionLength || 3;
+    document.getElementById('wiz-account-name').value = accountName || '';
+    document.getElementById('wiz-balance').value = accountBalance ? accountBalance.toFixed(2) : '';
+
+    // Re-capture snapshot after reset
+    wizard.snapshot = {
+      billsLen: bills.length,
+      incomeLen: incomeEntries.length,
+      debtsLen: debtEntries.length,
+      adhocLen: adhocExpenses.length,
+      adjustmentsLen: runningBudgetAdjustments.length,
+      accountBalance: accountBalance,
+      accountName: accountName,
+      startDate: startDate ? new Date(startDate) : null,
+      projectionLength: projectionLength,
+    };
+
+    wizardGoToStep(1);
+  });
+
+  // ---- Step 6: Complete ----
+  document.getElementById('wiz-complete').addEventListener('click', function () {
+    document.getElementById('guide-me-modal').style.display = 'none';
+    updateDisplay();
+    wizardShowToast('Budget set up successfully! Welcome aboard. \u2728');
   });
 });
