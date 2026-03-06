@@ -1,6 +1,6 @@
 # Budget App
 
-![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-3.2.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Platform](https://img.shields.io/badge/platform-web-lightgrey.svg)
 
@@ -67,11 +67,19 @@ Your financial data never leaves your device. Export it, back it up, delete it�
 - **Math Expressions** — Enter `1500+250` or `2000-150` in any amount field
 - **Running Budget Adjustments** — Override calculated values for real-world scenarios
 - **End-of-Month Handling** — Bills set for the 31st auto-adjust for shorter months
+- **Bill-to-Debt Linking** — Link any recurring bill directly to a debt account; the payment amount stays in sync automatically. A chain icon (🔗) marks linked bills in the table
 
 ### Visualization
-- **Expenses Breakdown Chart** — See where your money goes
-- **Category Analysis** — Spending patterns by category
+- **Expenses Breakdown Chart** — Total spending per expense over the projection period
+- **Category Analysis** — Spending patterns grouped by category
+- **Debt Breakdown Donut Chart** — Debt balances by type, color-coded by quality (hot reds for credit cards, neutrals for student/personal loans, cool blues for mortgages and auto loans); total debt displayed in the center
+- **Asset Equity Bars** — For mortgages and auto loans with an estimated asset value, a horizontal bar shows debt owed (red) vs. equity held (green); a bold consolidated bar summarizes all asset-backed debts when there are two or more
 - **Color-Coded Balances** — Green (safe), orange (caution), red (danger)
+
+### Debt Management
+- **Debt Summary** — At-a-glance metrics: total debt, minimum and actual payments, weighted average APR, and estimated debt-free date
+- **Asset Equity Tracking** — Enter an estimated asset value on car loans and mortgages to track equity and detect underwater loans
+- **Debt Classification** — Seven debt types (Credit Card, Auto Loan, Personal Loan, Student Loan, Mortgage, Medical Debt, Other) with payoff projections per account
 
 ### Data Control
 - **JSON Export** — Full backup with one click
@@ -180,6 +188,23 @@ Real life doesn't match predictions. Use the **Edit** button on any Running Budg
 - Add notes explaining the adjustment
 - Handle deferrals, partial payments, or windfalls
 
+### 8. Manage Debt Accounts
+
+Track what you owe and watch your net worth improve over time:
+
+1. Open **Add Debt/Credit Account**
+2. Enter creditor name, debt type, balance, APR, minimum and actual monthly payments, and loan term
+3. For **Auto Loans** and **Mortgages**, enter the **Est. Asset Value** to unlock equity tracking
+4. Click **Add Debt**
+
+**Link a bill to a debt:** When adding or editing a recurring bill, check **Link to Debt Account** and select the debt. The bill amount will automatically mirror the debt's actual monthly payment and stay in sync whenever the debt is edited. Deleting a debt automatically unlinks its bills and freezes the last-known amount.
+
+**Reading the Debt Breakdown chart:** The donut chart below the Debt Summary card shows each debt type's share of your total debt. Color coding reflects debt quality—reds are high-cost consumer debt (credit cards, medical), blues are asset-backed loans (auto, mortgage), and neutrals sit in between (personal and student loans). The total debt is displayed in bold in the center.
+
+**Reading the Asset Equity Bars:** Bars appear for mortgages and auto loans that have an estimated asset value set. The red portion is what you still owe; the green portion is your equity. If a loan balance exceeds the asset value the bar turns fully red and is labeled "underwater." A bold consolidated bar at the top summarizes all asset-backed debts when you have two or more.
+
+> **Tip:** The Debt Summary card also shows Est. Total Asset Value and Net Asset Equity when at least one asset-backed debt has a value set.
+
 ---
 
 ## Data Management
@@ -250,11 +275,11 @@ Real life doesn't match predictions. Use the **Edit** button on any Running Budg
 ```
 budget-app/
 ├── index.html          # Main application page
-├── app.js              # Application logic (~1000 lines)
+├── app.js              # Application logic (~2100 lines)
 ├── styles.css          # All styling
 ├── favicon.ico         # Browser tab icon
 ├── README.md           # This file
-├── CHANGELOG.md        # Version historyosh Griffith*
+├── CHANGELOG.md        # Version history
 ├── LICENSE.md          # MIT License
 └── .github/
     └── copilot-instructions.md  # AI coding assistant config
@@ -349,8 +374,14 @@ A: Browser localStorage is typically 5-10MB. That's enough for years of budget d
 
 ### Features
 
-**Q: Can I track multiple bank accounts?**  
+**Q: Can I track multiple bank accounts?**
 A: Currently, Budget App tracks one checking account. Multiple accounts are on the roadmap.
+
+**Q: How does Bill-to-Debt Linking work?**
+A: When you link a recurring bill to a debt account, the bill amount automatically reflects the debt's actual monthly payment. If you update the debt payment, the bill updates too. Unlinking freezes the last-known amount so your budget stays accurate.
+
+**Q: What is the Est. Asset Value field on Auto Loans and Mortgages?**
+A: Entering the current market value of the asset (car, home) unlocks the Asset Equity Bars visualization. The bar shows how much of the asset's value you own (equity, in green) versus what you still owe (in red). If your loan balance exceeds the asset value, the bar indicates the loan is underwater.
 
 **Q: Why don't my bills appear on the right dates?**  
 A: Check that your projection start date is before the bill dates. Bills only show within your projection window.
