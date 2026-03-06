@@ -6,6 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ---
 
+## [3.2.0] - 2026-03-06
+
+### Added
+- **Debt Breakdown Donut Chart** — A doughnut chart below the Debt Summary card displays each debt type's share of total debt, color-coded by quality: hot reds (Credit Card, Medical Debt), neutral amber/green (Personal Loan, Student Loan), and cool blues (Auto Loan, Mortgage). Total debt is rendered in bold inside the center cutout.
+- **Asset Equity Bars** — Horizontal progress bars for Auto Loan and Mortgage debts that have an estimated asset value. The full bar width represents the asset's total value; the red fill shows what is owed; the green fill shows equity. Loans where the balance exceeds the asset value display a fully red "underwater" bar with a labeled deficit. A bold consolidated bar summarizes all qualifying debts when two or more are present.
+- **Est. Asset Value field** — Optional input on Auto Loan and Mortgage debt entries. Shown/hidden automatically based on the selected debt type in both the Add Debt form and the Edit modal.
+- **Asset Summary Metrics** — When asset-backed debts have a value set, the Debt Summary card gains "Est. Total Asset Value" and "Net Asset Equity" rows.
+
+### Changed
+- **Debt Summary Card** — Dynamically gains asset-value rows when applicable; no visual change for users without asset-backed debts.
+
+### Data Compatibility
+- Fully backward compatible. Existing JSON exports without `assetValue` import cleanly; the equity bars simply do not render for those entries.
+
+---
+
+## [3.1.0] - 2026-03-06
+
+### Added
+- **Bill-to-Debt Linking** — Any recurring bill can be linked to a debt account. The bill amount automatically mirrors the debt's actual monthly payment and stays in sync whenever the debt is edited.
+- **Stable Debt IDs** — Each debt entry now carries a UUID. Existing data receives auto-generated IDs on first load or import, with no disruption to existing records.
+- **Chain Icon** — Linked bills display a 🔗 icon in the Bills table for quick visual identification.
+
+### Changed
+- **Add Bill Form** — Added a "Link to Debt Account" checkbox that reveals a dropdown selector and disables the amount input (replaced by a live preview of the linked payment amount).
+- **Edit Bill Modal** — Includes the same link dropdown pre-selected to the current linked debt, with an inline read-only toggle on the amount field.
+- **Delete Debt** — Deleting a debt automatically unlinks any associated bills and freezes their last-known payment amount, so the running budget remains accurate.
+
+### Improved
+- **`generateId()`** — UUID helper added for stable entity references across all debt entries.
+- **`getBillEffectiveAmount(bill)`** — Returns the live payment amount from a linked debt, or falls back to the stored bill amount for unlinked bills.
+- **`syncLinkedBillAmounts()`** — Called after every debt save to propagate payment changes to all linked bills.
+- **`unlinkBillsForDebt(debtId)`** — Cleanly severs all bill links before a debt is deleted, preserving the last-known amount.
+
+### Data Compatibility
+- Fully backward compatible. Existing JSON exports without `id` or `linkedDebtId` fields import correctly; IDs are auto-generated and `linkedDebtId` defaults to `null`.
+
+---
+
 ## [3.0.0] - 2024-12-11
 
 ### 🎉 Major Release
