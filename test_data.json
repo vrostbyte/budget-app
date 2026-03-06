@@ -178,7 +178,8 @@
       "apr": 4.99,
       "minPayment": 350,
       "actualPayment": 350,
-      "loanLength": 60
+      "loanLength": 60,
+      "assetValue": 22000.00
     },
     {
       "name": "Student Loan",

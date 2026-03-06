@@ -378,6 +378,11 @@
                   <label for="debt-loan-length">Loan Term (months, 0 for revolving credit):</label>
                   <input type="number" id="debt-loan-length" min="0" value="0" />
 
+                  <div id="asset-value-field" style="display:none;">
+                    <label for="debt-asset-value">Est. Asset Value (USD):</label>
+                    <input type="text" id="debt-asset-value" placeholder="e.g., 25000" />
+                  </div>
+
                   <button type="submit">Add Debt</button>
                 </form>
               </div>
@@ -445,6 +450,17 @@
                   <span class="debt-summary-label">Est. Debt-Free Date:</span>
                   <span id="debt-free-date" class="debt-summary-value">N/A</span>
                 </div>
+              </div>
+            </div>
+
+            <!-- Asset Equity Bars -->
+            <div id="asset-equity-container" style="display:none;"></div>
+
+            <!-- Debt Breakdown Donut Chart -->
+            <div id="debt-donut-container" style="display:none;">
+              <h2>Debt Breakdown by Type</h2>
+              <div style="position:relative; max-width:380px; margin:0 auto;">
+                <canvas id="debt-donut-chart"></canvas>
               </div>
             </div>
 
