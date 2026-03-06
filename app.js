@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // Chart variables
   let expensesChart;
   let categoryExpensesChart;
+  let debtDonutChart;
 
   // =======================
   // Error Handling & Recovery
@@ -1011,6 +1012,199 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
       totalDebtEl.style.color = 'green';
     }
+
+    // Asset debt summary metrics (Est. Asset Value + Net Equity)
+    const assetDebtsWithValue = debtEntries.filter(d => isAssetDebtType(d.type) && d.assetValue > 0);
+    const assetMetricsRow = document.getElementById('debt-asset-metrics-row');
+    if (assetDebtsWithValue.length > 0) {
+      const totalAssetVal = assetDebtsWithValue.reduce((s, d) => s + d.assetValue, 0);
+      const totalAssetDebt = assetDebtsWithValue.reduce((s, d) => s + d.balance, 0);
+      const netEquity = totalAssetVal - totalAssetDebt;
+      const grid = document.querySelector('#debt-summary-container .debt-summary-grid');
+      if (!assetMetricsRow && grid) {
+        const row = document.createElement('div');
+        row.id = 'debt-asset-metrics-row';
+        row.style.cssText = 'display:contents;';
+        row.innerHTML = `
+          <div class="debt-summary-item">
+            <span class="debt-summary-label">Est. Total Asset Value:</span>
+            <span id="total-asset-value" class="debt-summary-value">$${totalAssetVal.toFixed(2)}</span>
+          </div>
+          <div class="debt-summary-item">
+            <span class="debt-summary-label">Net Asset Equity:</span>
+            <span id="net-asset-equity" class="debt-summary-value" style="color:${netEquity >= 0 ? 'green' : 'red'}">$${netEquity.toFixed(2)}</span>
+          </div>`;
+        grid.appendChild(row);
+      } else if (assetMetricsRow) {
+        document.getElementById('total-asset-value').textContent = `$${totalAssetVal.toFixed(2)}`;
+        const equityEl = document.getElementById('net-asset-equity');
+        equityEl.textContent = `$${netEquity.toFixed(2)}`;
+        equityEl.style.color = netEquity >= 0 ? 'green' : 'red';
+      }
+    } else if (assetMetricsRow) {
+      assetMetricsRow.remove();
+    }
+
+    // Render new debt visualizations
+    renderAssetEquityBars();
+    renderDebtDonutChart();
+  }
+
+  // =======================
+  // Debt Donut Chart
+  // =======================
+  function renderDebtDonutChart() {
+    const container = document.getElementById('debt-donut-container');
+    const canvas = document.getElementById('debt-donut-chart');
+    if (!container || !canvas) return;
+
+    // Aggregate balance by debt type (skip zero-balance debts)
+    const typeBalances = {};
+    debtEntries.forEach(debt => {
+      if (debt.balance > 0) {
+        typeBalances[debt.type] = (typeBalances[debt.type] || 0) + debt.balance;
+      }
+    });
+
+    const types = Object.keys(typeBalances);
+    if (types.length === 0) {
+      container.style.display = 'none';
+      if (debtDonutChart) { debtDonutChart.destroy(); debtDonutChart = null; }
+      return;
+    }
+    container.style.display = 'block';
+
+    const debtTypeColors = {
+      'Credit Card':   '#e74c3c',
+      'Medical Debt':  '#e67e22',
+      'Personal Loan': '#f0b429',
+      'Student Loan':  '#27ae60',
+      'Auto Loan':     '#3498db',
+      'Mortgage':      '#1a5276',
+      'Other':         '#95a5a6'
+    };
+
+    const labels = types;
+    const data = types.map(t => typeBalances[t]);
+    const colors = types.map(t => debtTypeColors[t] || '#95a5a6');
+    const totalDebt = data.reduce((s, v) => s + v, 0);
+
+    const centerTextPlugin = {
+      id: 'debtDonutCenter',
+      beforeDraw(chart) {
+        const { ctx, chartArea } = chart;
+        if (!chartArea) return;
+        const cx = (chartArea.left + chartArea.right) / 2;
+        const cy = (chartArea.top + chartArea.bottom) / 2;
+        ctx.save();
+        ctx.font = 'bold 18px Arial';
+        ctx.fillStyle = '#343a40';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`$${totalDebt.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`, cx, cy - 10);
+        ctx.font = '12px Arial';
+        ctx.fillStyle = '#666';
+        ctx.fillText('Total Debt', cx, cy + 12);
+        ctx.restore();
+      }
+    };
+
+    if (debtDonutChart) { debtDonutChart.destroy(); debtDonutChart = null; }
+
+    debtDonutChart = new Chart(canvas.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: colors,
+          borderColor: '#fff',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        cutout: '65%',
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: {
+            callbacks: {
+              label(context) {
+                const val = context.parsed;
+                const pct = ((val / totalDebt) * 100).toFixed(1);
+                return ` $${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${pct}%)`;
+              }
+            }
+          }
+        }
+      },
+      plugins: [centerTextPlugin]
+    });
+  }
+
+  // =======================
+  // Asset Equity Bars
+  // =======================
+  function renderAssetEquityBars() {
+    const container = document.getElementById('asset-equity-container');
+    if (!container) return;
+
+    const assetDebts = debtEntries.filter(d => isAssetDebtType(d.type) && d.assetValue > 0);
+
+    if (assetDebts.length === 0) {
+      container.style.display = 'none';
+      container.innerHTML = '';
+      return;
+    }
+    container.style.display = 'block';
+    container.innerHTML = '';
+
+    function formatDollars(n) {
+      return '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    function buildBar(debt, isConsolidated) {
+      const { name, balance, assetValue } = debt;
+      const underwater = balance > assetValue;
+      const debtPct = Math.min((balance / assetValue) * 100, 100);
+      const equityPct = underwater ? 0 : ((assetValue - balance) / assetValue) * 100;
+      const equityAmt = assetValue - balance;
+
+      const labelText = isConsolidated
+        ? (underwater
+            ? `All Asset Debts — underwater by ${formatDollars(-equityAmt)}`
+            : `All Asset Debts — ${formatDollars(equityAmt)} total equity`)
+        : (underwater
+            ? `${name} — underwater by ${formatDollars(-equityAmt)}`
+            : `${name} — ${formatDollars(equityAmt)} equity`);
+
+      const trackClass = isConsolidated ? 'eq-bar-track consolidated' : 'eq-bar-track';
+
+      const row = document.createElement('div');
+      row.className = 'eq-bar-row';
+      row.innerHTML = `
+        <div class="eq-bar-label">${labelText}</div>
+        <div class="${trackClass}">
+          <div class="eq-debt-fill" style="width:${debtPct.toFixed(2)}%"></div>
+          ${underwater ? '' : `<div class="eq-equity-fill" style="width:${equityPct.toFixed(2)}%"></div>`}
+        </div>`;
+      return row;
+    }
+
+    // Consolidated bar (only if 2+ qualifying debts)
+    if (assetDebts.length >= 2) {
+      const totalAssetValue = assetDebts.reduce((s, d) => s + d.assetValue, 0);
+      const totalBalance = assetDebts.reduce((s, d) => s + d.balance, 0);
+      const consolidated = { name: 'All Asset Debts', balance: totalBalance, assetValue: totalAssetValue };
+      const title = document.createElement('h3');
+      title.className = 'eq-section-title';
+      title.textContent = 'Asset-Backed Debt Overview';
+      container.appendChild(title);
+      container.appendChild(buildBar(consolidated, true));
+    }
+
+    // Individual bars
+    assetDebts.forEach(debt => container.appendChild(buildBar(debt, false)));
   }
 
   // =======================
@@ -1292,9 +1486,23 @@ document.addEventListener('DOMContentLoaded', function () {
         <input type="text" id="edit-debt-actual-payment" required value="${debt.actualPayment}" />
         <label for="edit-debt-loan-length">Loan Term (months, 0 for revolving credit):</label>
         <input type="number" id="edit-debt-loan-length" min="0" value="${debt.loanLength || 0}" />
+        <div id="edit-asset-value-field" style="display:${isAssetDebtType(debt.type) ? 'block' : 'none'};">
+          <label for="edit-debt-asset-value">Est. Asset Value (USD):</label>
+          <input type="text" id="edit-debt-asset-value" placeholder="e.g., 25000" value="${debt.assetValue || ''}" />
+        </div>
         <button type="submit">Update Debt</button>
         <button type="button" id="cancel-edit-btn">Cancel</button>
       `;
+      // Wire up asset value field visibility to type selector in edit modal
+      document.getElementById('edit-debt-type').addEventListener('change', function () {
+        const editAssetField = document.getElementById('edit-asset-value-field');
+        if (isAssetDebtType(this.value)) {
+          editAssetField.style.display = 'block';
+        } else {
+          editAssetField.style.display = 'none';
+          document.getElementById('edit-debt-asset-value').value = '';
+        }
+      });
       editForm.onsubmit = function (e) {
         e.preventDefault();
         updateDebtEntry(index);
@@ -1378,6 +1586,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const minPayment = parseMathExpression(document.getElementById('edit-debt-min-payment').value);
     const actualPayment = parseMathExpression(document.getElementById('edit-debt-actual-payment').value);
     const loanLength = parseInt(document.getElementById('edit-debt-loan-length').value, 10) || 0;
+    const assetValue = isAssetDebtType(type)
+      ? (parseMathExpression(document.getElementById('edit-debt-asset-value').value) || 0)
+      : 0;
 
     if (balance < 0) {
       alert('Balance cannot be negative.');
@@ -1388,7 +1599,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    debtEntries[index] = { id: debtEntries[index].id, name, type, balance, apr, minPayment, actualPayment, loanLength };
+    debtEntries[index] = { id: debtEntries[index].id, name, type, balance, apr, minPayment, actualPayment, loanLength, assetValue };
     syncLinkedBillAmounts();
     saveData();
     updateDisplay();
@@ -1547,10 +1758,31 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    debtEntries.push({ id: generateId(), name, type, balance, apr, minPayment, actualPayment, loanLength });
+    const assetValue = isAssetDebtType(type)
+      ? (parseMathExpression(document.getElementById('debt-asset-value').value) || 0)
+      : 0;
+
+    debtEntries.push({ id: generateId(), name, type, balance, apr, minPayment, actualPayment, loanLength, assetValue });
     saveData();
     e.target.reset();
+    // Reset asset value field visibility after submit
+    document.getElementById('asset-value-field').style.display = 'none';
     updateDisplay();
+  });
+
+  // Show/hide Est. Asset Value field based on debt type selection
+  function isAssetDebtType(type) {
+    return type === 'Auto Loan' || type === 'Mortgage';
+  }
+
+  document.getElementById('debt-type').addEventListener('change', function () {
+    const assetField = document.getElementById('asset-value-field');
+    if (isAssetDebtType(this.value)) {
+      assetField.style.display = 'block';
+    } else {
+      assetField.style.display = 'none';
+      document.getElementById('debt-asset-value').value = '';
+    }
   });
 
   // Debt table sorting
@@ -1679,7 +1911,8 @@ document.addEventListener('DOMContentLoaded', function () {
           minPayment: roundToCents(debt.minPayment || 0),
           actualPayment: roundToCents(debt.actualPayment || 0),
           apr: parseFloat(debt.apr) || 0,
-          loanLength: parseInt(debt.loanLength, 10) || 0
+          loanLength: parseInt(debt.loanLength, 10) || 0,
+          assetValue: roundToCents(debt.assetValue || 0)
         }));
         saveData();
         populateCategories();
