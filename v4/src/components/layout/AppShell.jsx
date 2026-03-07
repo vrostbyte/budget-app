@@ -8,6 +8,7 @@ import InputsView from '../inputs/InputsView.jsx';
 import DebtView from '../debt/DebtView.jsx';
 import ChartsView from '../charts/ChartsView.jsx';
 import Toast from '../shared/Toast.jsx';
+import GuideMe from '../wizard/GuideMe.jsx';
 
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
@@ -33,6 +34,7 @@ export default function AppShell() {
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <Toast />
       <DesktopSidebar />
+      <GuideMe />
 
       {/* Main content area — offset by sidebar on desktop */}
       <main className="md:pl-60 pb-16 md:pb-0 min-h-screen">
