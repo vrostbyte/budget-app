@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ---
 
+## [3.3.1] - 2026-03-07
+
+### Fixed
+- **Wizard Step 3 — `termMonths` → `loanLength`**: The wizard's debt add handler was pushing `termMonths` to `debtEntries[]`, while the rest of the app (form submit, `loadData`, payoff calculations, import/export) uses `loanLength`. Property name corrected; the Payoff column now calculates correctly for wizard-entered debts with a set loan term.
+
+### Added
+- **"Start Fresh?" link on Wizard Step 1** — A small, muted-red link below the Step 1 form lets users erase ALL existing app data before onboarding. Shows a confirmation dialog. Distinct from "Start Over" (Step 6), which only reverts wizard-session entries while leaving pre-existing data intact.
+
+### Improved
+- **Sample data overhauled** — New comprehensive dataset demonstrates all features added in v3.1–v3.3: 6 debt accounts (all types with stable IDs, asset values on Auto Loan and Mortgage), 6 debt-linked bills showing 🔗 chain icons, 9 unlinked bills across diverse categories, 3 income sources with different frequencies (Bi-weekly × 2, Monthly), 2 adhoc expenses, 1 running budget adjustment, and the new "Groceries" category. Loading sample data now exercises the donut chart, equity bars, consolidated bar, asset summary metrics, and bill-to-debt linking all at once.
+
+### Updated
+- **README.md** — Added "Guided Setup" feature subsection documenting the Guide Me wizard, "Quick Start with Guide Me" User Guide section (§0), two new FAQ entries explaining the wizard and the Start Fresh/Start Over distinction, updated `app.js` line count estimate to ~2800, added "Recently Completed" roadmap section, and bumped version badge to 3.3.1.
+
+---
+
 ## [3.3.0] - 2026-03-06
 
 ### Added

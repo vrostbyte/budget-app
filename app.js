@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // =======================
   // App Version (update this when releasing new versions)
   // =======================
-  const APP_VERSION = '3.3.0';
+  const APP_VERSION = '3.3.1';
   
   // =======================
   // Global Data Variables
@@ -64,40 +64,52 @@ document.addEventListener('DOMContentLoaded', function () {
     localStorage.setItem('appVersion', APP_VERSION);
   }
 
-  // Sample data (with anonymized names and current dates)
+  // Sample data — showcases all features added in v3.1–v3.3 (debt linking, equity bars,
+  // donut chart, diverse income frequencies, bill-to-debt linking)
+  const _sampleNow = new Date();
+  const _sampleDayOfWeek = _sampleNow.getDay(); // 0=Sun … 6=Sat
+  const _sampleLastFriday = new Date(_sampleNow);
+  _sampleLastFriday.setDate(_sampleNow.getDate() - ((_sampleDayOfWeek + 2) % 7));
+  const _sampleSecondFriday = new Date(_sampleLastFriday);
+  _sampleSecondFriday.setDate(_sampleLastFriday.getDate() + 7);
+  const _sampleMonthStart = new Date(_sampleNow.getFullYear(), _sampleNow.getMonth(), 1);
+  const _sampleTaxDate = new Date(_sampleNow);
+  _sampleTaxDate.setDate(_sampleNow.getDate() + 42);
+  const _sampleRegDate = new Date(_sampleNow);
+  _sampleRegDate.setDate(_sampleNow.getDate() + 62);
+  const _sampleDinnerDate = new Date(_sampleNow);
+  _sampleDinnerDate.setDate(_sampleNow.getDate() + 31);
+  function _sampleFmt(d) { return d.toISOString().split('T')[0]; }
+
   const sampleData = {
     "bills": [
-      { "name": "Housing Payment 1", "date": 1, "amount": 2420, "category": "Housing" },
-      { "name": "Childcare Payment 1", "date": 1, "amount": 799.2, "category": "Childcare" },
-      { "name": "Credit Card Payment 1", "date": 6, "amount": 250, "category": "Debt Payments" },
-      { "name": "Insurance Payment 1", "date": 7, "amount": 259.9, "category": "Insurance" },
-      { "name": "Transportation Payment 1", "date": 7, "amount": 383.94, "category": "Transportation" },
-      { "name": "Credit Card Payment 2", "date": 8, "amount": 430.57, "category": "Debt Payments" },
-      { "name": "Utility Payment 1", "date": 5, "amount": 80, "category": "Utilities" },
-      { "name": "Credit Card Payment 3", "date": 2, "amount": 96, "category": "Debt Payments" },
-      { "name": "Subscription Payment 1", "date": 10, "amount": 16, "category": "Subscriptions/Memberships" },
-      { "name": "Debt Payment 1", "date": 13, "amount": 92, "category": "Debt Payments" },
-      { "name": "Utility Payment 2", "date": 15, "amount": 400, "category": "Utilities" },
-      { "name": "Loan Payment 1", "date": 15, "amount": 80, "category": "Debt Payments" },
-      { "name": "Credit Card Payment 4", "date": 18, "amount": 330, "category": "Debt Payments" },
-      { "name": "Credit Card Payment 5", "date": 20, "amount": 52, "category": "Debt Payments" },
-      { "name": "Credit Card Payment 6", "date": 21, "amount": 439, "category": "Debt Payments" },
-      { "name": "Utility Payment 3", "date": 22, "amount": 170, "category": "Utilities" },
-      { "name": "Subscription Payment 2", "date": 23, "amount": 21.26, "category": "Subscriptions/Memberships" },
-      { "name": "Utility Payment 4", "date": 24, "amount": 201.63, "category": "Utilities" },
-      { "name": "Utility Payment 5", "date": 26, "amount": 100, "category": "Utilities" },
-      { "name": "Transportation Payment 2", "date": 20, "amount": 345.4, "category": "Transportation" },
-      { "name": "Misc Payment 1", "date": 28, "amount": 46, "category": "Misc/Other" },
-      { "name": "Housing Payment 2", "date": 30, "amount": 174, "category": "Housing" },
-      { "name": "Student Loan Payment 1", "date": 5, "amount": 376, "category": "Student Loans" }
+      { "name": "Mortgage Payment",              "date": 1,  "amount": 1650.00, "category": "Housing",                   "linkedDebtId": "sample-debt-6" },
+      { "name": "Health Insurance",              "date": 1,  "amount": 320.00,  "category": "Insurance",                 "linkedDebtId": null },
+      { "name": "Childcare",                     "date": 1,  "amount": 850.00,  "category": "Childcare",                 "linkedDebtId": null },
+      { "name": "Grocery Budget",                "date": 3,  "amount": 600.00,  "category": "Groceries",                 "linkedDebtId": null },
+      { "name": "Auto Loan Payment",             "date": 5,  "amount": 385.00,  "category": "Transportation",            "linkedDebtId": "sample-debt-3" },
+      { "name": "Car Insurance",                 "date": 5,  "amount": 168.00,  "category": "Insurance",                 "linkedDebtId": null },
+      { "name": "Internet",                      "date": 8,  "amount": 79.99,   "category": "Utilities",                 "linkedDebtId": null },
+      { "name": "Credit Card Payment - Chase",   "date": 10, "amount": 150.00,  "category": "Debt Payments",             "linkedDebtId": "sample-debt-1" },
+      { "name": "Electric Bill",                 "date": 12, "amount": 185.00,  "category": "Utilities",                 "linkedDebtId": null },
+      { "name": "Credit Card Payment - Discover","date": 15, "amount": 75.00,   "category": "Debt Payments",             "linkedDebtId": "sample-debt-2" },
+      { "name": "Streaming Services",            "date": 15, "amount": 45.97,   "category": "Subscriptions/Memberships", "linkedDebtId": null },
+      { "name": "Water/Sewer",                   "date": 18, "amount": 75.00,   "category": "Utilities",                 "linkedDebtId": null },
+      { "name": "Student Loan Payment",          "date": 20, "amount": 350.00,  "category": "Debt Payments",             "linkedDebtId": "sample-debt-4" },
+      { "name": "Personal Loan Payment",         "date": 22, "amount": 150.00,  "category": "Debt Payments",             "linkedDebtId": "sample-debt-5" },
+      { "name": "Phone Bill",                    "date": 25, "amount": 145.00,  "category": "Utilities",                 "linkedDebtId": null }
     ],
     "incomeEntries": [
-      { "name": "Income Payment 1", "amount": 1700, "frequency": "Bi-weekly", "startDate": "2025-12-05" },
-      { "name": "Income Payment 2", "amount": 2133.25, "frequency": "Bi-weekly", "startDate": "2025-12-12" }
+      { "name": "Paycheck - Primary",      "amount": 1850.00, "frequency": "Bi-weekly", "startDate": _sampleFmt(_sampleLastFriday)   },
+      { "name": "Paycheck - Secondary",    "amount": 1425.00, "frequency": "Bi-weekly", "startDate": _sampleFmt(_sampleSecondFriday) },
+      { "name": "Side Business Revenue",   "amount": 400.00,  "frequency": "Monthly",   "startDate": _sampleFmt(_sampleMonthStart)   }
     ],
-    "adhocExpenses": [],
-    "accountBalance": 3435.95,
-    "accountName": "Sample Checking",
+    "adhocExpenses": [
+      { "name": "Car Registration Renewal", "date": _sampleFmt(_sampleRegDate),    "amount": 285.00, "category": "Transportation"    },
+      { "name": "Anniversary Dinner",       "date": _sampleFmt(_sampleDinnerDate), "amount": 150.00, "category": "Dining Out/Takeout"}
+    ],
+    "accountBalance": 4250.00,
+    "accountName": "Household Checking",
     "startDate": new Date().toISOString(),
     "projectionLength": 6,
     "categories": [
@@ -107,6 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
       "Dining Out/Takeout",
       "Education",
       "Entertainment",
+      "Groceries",
       "Healthcare",
       "Hobbies/Recreation",
       "Housing",
@@ -119,17 +132,19 @@ document.addEventListener('DOMContentLoaded', function () {
       "Travel",
       "Utilities",
       "Misc/Other",
-      "Student Loans",
-      "Credit Card Payment"
+      "Credit Card Payment",
+      "Student Loans"
     ],
-    "runningBudgetAdjustments": [],
+    "runningBudgetAdjustments": [
+      { "date": _sampleFmt(_sampleTaxDate), "amount": 2800.00, "event": "Tax Refund" }
+    ],
     "debtEntries": [
-      { "name": "Chase Sapphire", "type": "Credit Card", "balance": 4250.00, "apr": 21.99, "minPayment": 85, "actualPayment": 250, "loanLength": 0 },
-      { "name": "Discover It", "type": "Credit Card", "balance": 2100.50, "apr": 18.99, "minPayment": 42, "actualPayment": 100, "loanLength": 0 },
-      { "name": "Capital One Quicksilver", "type": "Credit Card", "balance": 890.25, "apr": 24.99, "minPayment": 25, "actualPayment": 96, "loanLength": 0 },
-      { "name": "Auto Finance Corp", "type": "Auto Loan", "balance": 12500.00, "apr": 5.99, "minPayment": 345.40, "actualPayment": 345.40, "loanLength": 48 },
-      { "name": "Federal Student Loan", "type": "Student Loan", "balance": 28000.00, "apr": 4.5, "minPayment": 376, "actualPayment": 376, "loanLength": 120 },
-      { "name": "Personal Loan - Credit Union", "type": "Personal Loan", "balance": 3200.00, "apr": 9.99, "minPayment": 92, "actualPayment": 92, "loanLength": 36 }
+      { "id": "sample-debt-1", "name": "Chase Sapphire",           "type": "Credit Card",   "balance": 6200.00,   "apr": 22.99, "minPayment": 124.00, "actualPayment": 150.00, "loanLength": 0,   "assetValue": 0       },
+      { "id": "sample-debt-2", "name": "Discover It",              "type": "Credit Card",   "balance": 1450.00,   "apr": 18.49, "minPayment": 29.00,  "actualPayment": 75.00,  "loanLength": 0,   "assetValue": 0       },
+      { "id": "sample-debt-3", "name": "Auto Loan - Toyota",       "type": "Auto Loan",     "balance": 18500.00,  "apr": 5.49,  "minPayment": 385.00, "actualPayment": 385.00, "loanLength": 60,  "assetValue": 22000   },
+      { "id": "sample-debt-4", "name": "Federal Student Loan",     "type": "Student Loan",  "balance": 32000.00,  "apr": 4.99,  "minPayment": 320.00, "actualPayment": 350.00, "loanLength": 120, "assetValue": 0       },
+      { "id": "sample-debt-5", "name": "Personal Loan - CU",       "type": "Personal Loan", "balance": 4800.00,   "apr": 9.99,  "minPayment": 145.00, "actualPayment": 150.00, "loanLength": 36,  "assetValue": 0       },
+      { "id": "sample-debt-6", "name": "Home Mortgage",            "type": "Mortgage",      "balance": 245000.00, "apr": 6.75,  "minPayment": 1590.00,"actualPayment": 1650.00,"loanLength": 360, "assetValue": 310000  }
     ]
   };
 
@@ -2496,7 +2511,7 @@ document.addEventListener('DOMContentLoaded', function () {
       apr,
       minPayment: roundToCents(minPayment),
       actualPayment: roundToCents(actualPayment),
-      termMonths,
+      loanLength: termMonths,
       assetValue: roundToCents(assetValue),
     });
     saveData();
@@ -2711,5 +2726,57 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('guide-me-modal').style.display = 'none';
     updateDisplay();
     wizardShowToast('Budget set up successfully! Welcome aboard. \u2728');
+  });
+
+  // ---- Step 1: Start Fresh (erase ALL app data, then restart wizard) ----
+  document.getElementById('wiz-start-fresh').addEventListener('click', function (e) {
+    e.preventDefault();
+    if (!confirm(
+      'This will erase ALL existing budget data (bills, income, debts, expenses, ' +
+      'adjustments, and account balance) so you can start completely from scratch. ' +
+      'This cannot be undone. Are you sure?'
+    )) return;
+
+    // Reset all globals — identical logic to reset-btn handler
+    localStorage.clear();
+    bills = [];
+    incomeEntries = [];
+    adhocExpenses = [];
+    accountBalance = 0;
+    accountName = '';
+    startDate = null;
+    projectionLength = 1;
+    categories = [
+      'Charity/Donations', 'Childcare', 'Debt Payments', 'Dining Out/Takeout',
+      'Education', 'Entertainment', 'Healthcare', 'Hobbies/Recreation', 'Housing',
+      'Insurance', 'Personal Care', 'Pets', 'Savings/Investments',
+      'Subscriptions/Memberships', 'Transportation', 'Travel', 'Utilities',
+      'Misc/Other', 'Credit Card Payment', 'Student Loans'
+    ];
+    runningBudgetAdjustments = [];
+    debtEntries = [];
+    saveData();
+
+    // Re-initialize wizard from the now-empty state
+    wizard.snapshot = {
+      billsLen: 0, incomeLen: 0, debtsLen: 0, adhocLen: 0, adjustmentsLen: 0,
+      accountBalance: 0, accountName: '', startDate: null, projectionLength: 1,
+    };
+    wizard.maxReached = 1;
+
+    // Clear all wizard summary lists
+    ['wiz-income-list', 'wiz-debt-list', 'wiz-bill-list', 'wiz-adhoc-list'].forEach(function (id) {
+      document.getElementById(id).innerHTML = '';
+    });
+
+    // Reset Step 1 fields to blank defaults
+    const freshToday = new Date().toISOString().split('T')[0];
+    document.getElementById('wiz-start-date').value = freshToday;
+    document.getElementById('wiz-projection').value = 3;
+    document.getElementById('wiz-account-name').value = '';
+    document.getElementById('wiz-balance').value = '';
+
+    wizardGoToStep(1);
+    wizardShowToast('All data cleared. Starting fresh! \u2728');
   });
 });

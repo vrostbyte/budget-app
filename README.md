@@ -1,6 +1,6 @@
 # Budget App
 
-![Version](https://img.shields.io/badge/version-3.2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-3.3.1-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Platform](https://img.shields.io/badge/platform-web-lightgrey.svg)
 
@@ -93,6 +93,15 @@ Your financial data never leaves your device. Export it, back it up, delete it�
 - **Print Friendly** — Clean printouts for offline reference
 - **No Loading Screens** — Instant, snappy performance
 
+### Guided Setup
+- **"Guide Me" Wizard** — A step-by-step onboarding assistant that walks new users through setting up their entire budget. Accessible from the Menu dropdown.
+- **6-Step Flow** — Initial Setup → Income → Debt Accounts → Monthly Expenses → One-Off Items → Review
+- **Budget Concierge** — Add entries one at a time with friendly guidance at each step. Entries are saved immediately so nothing is lost.
+- **Debt-to-Bill Linking** — Link monthly bills to debt accounts directly from the wizard. Payment amounts stay in sync automatically.
+- **Start Fresh Option** — Wipe all existing data and begin from a clean slate, right from the wizard's first screen.
+- **Progress Tracking** — A 6-step progress bar shows your position. Completed steps are clickable to jump back and review.
+- **Mobile Optimized** — The wizard goes full-screen on mobile devices for a native app feel.
+
 ---
 
 ## Quick Start
@@ -114,6 +123,19 @@ That's it. No installation, no dependencies, no build process.
 ---
 
 ## User Guide
+
+### 0. Quick Start with Guide Me
+
+The fastest way to get started:
+
+1. Click **Menu → ✨ Guide Me**
+2. Follow the step-by-step wizard to set up your budget
+3. The wizard walks you through: start date, account balance, income, debts, bills, and one-time items
+4. Click **Complete** when done — your budget is ready!
+
+> **Tip:** If you want to start completely from scratch, click "Start Fresh?" on the first screen to clear any existing data before beginning.
+
+> **Tip:** You can link monthly bills directly to your debt accounts during the wizard. This keeps payment amounts in sync automatically.
 
 ### 1. Set Your Projection Window
 
@@ -275,7 +297,7 @@ Track what you owe and watch your net worth improve over time:
 ```
 budget-app/
 ├── index.html          # Main application page
-├── app.js              # Application logic (~2100 lines)
+├── app.js              # Application logic (~2800 lines)
 ├── styles.css          # All styling
 ├── favicon.ico         # Browser tab icon
 ├── README.md           # This file
@@ -328,6 +350,13 @@ Contributions are welcome! Here's how:
 
 ## Roadmap
 
+### Recently Completed
+
+- [x] Guided onboarding wizard ("Guide Me")
+- [x] Bill-to-Debt linking
+- [x] Debt breakdown visualization
+- [x] Asset equity tracking
+
 ### Under Consideration
 
 - [ ] Multiple checking accounts
@@ -373,6 +402,12 @@ A: Ensure it's a valid JSON file exported from Budget App. The filename doesn't 
 A: Browser localStorage is typically 5-10MB. That's enough for years of budget data.
 
 ### Features
+
+**Q: What does the "Guide Me" wizard do?**
+A: It walks you through setting up your entire budget step by step — start date, income, debts, bills, and one-time items. It's the easiest way to get started, especially if you're new to the app.
+
+**Q: What's the difference between "Start Fresh" and "Start Over" in the wizard?**
+A: "Start Fresh" (on the first screen) erases ALL existing data in the app and gives you a completely blank slate. "Start Over" (on the review screen) only removes what you entered during the current wizard session, leaving any pre-existing data intact.
 
 **Q: Can I track multiple bank accounts?**
 A: Currently, Budget App tracks one checking account. Multiple accounts are on the roadmap.

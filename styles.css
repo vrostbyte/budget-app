@@ -871,6 +871,17 @@ th.sortable:hover i {
   color: #555;
 }
 
+.wizard-fresh-link {
+  font-size: 0.82em;
+  color: #dc3545;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.wizard-fresh-link:hover {
+  color: #a71d2a;
+}
+
 /* Review step stat cards */
 .wizard-summary-stats {
   display: grid;
