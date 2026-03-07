@@ -42,7 +42,7 @@ export default function MobileBottomNav() {
               key={id}
               onClick={() => setActiveTab(id)}
               aria-label={label}
-              className="flex flex-col items-center gap-1 px-3 py-1"
+              className="flex flex-col items-center gap-1 px-3 py-1 min-h-[44px] min-w-[44px] justify-center"
             >
               <Icon
                 className={`w-5 h-5 transition-colors duration-150

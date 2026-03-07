@@ -6,6 +6,49 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ---
 
+## [4.0.0] - 2026-03-07
+
+### 🎉 Major Release — React + Vite Rewrite (Cyber Edition)
+
+Version 4.0 is a complete ground-up rewrite of the vanilla JavaScript budget app as a React 19 + Vite 7 single-page application. All v3.x features are preserved and enhanced.
+
+### Added
+- **React 19 + Vite 7** — modern component architecture, HMR dev experience, optimized production build
+- **Zustand state management** — single store with persistent `localStorage` middleware; `importData`, `exportData`, `resetAll`, `loadSampleData` actions
+- **Framer Motion animations** — page transitions (200ms easeOut), card mount stagger (50ms per card), wizard step slide transitions (direction-aware), active progress circle spring scale-up
+- **Tailwind CSS v4** — CSS-first configuration via `@tailwindcss/vite`; custom `card-neu` / `card-neu-inset` / `glow-*` utility classes
+- **Cyber-Neumorphism design system** — dark slate palette, cyan/emerald/rose accent hierarchy, inset form inputs, layered shadows
+- **Command Center (Add / Edit tab)** — 5-tab interface (Bills · Income · Adhoc · Debt · Adjustments) with full inline CRUD; account settings always visible at top
+- **AmountInput component** — math expression parser (recursive-descent, no eval); shows raw expression while focused, formatted currency on blur; red ring on parse error
+- **CategoryManager** — inline "Add Category" without leaving the form; Enter submits, Escape collapses
+- **ConfirmDialog component** — animated modal (Framer Motion scale), `danger` prop toggles rose vs. cyan confirm button, backdrop-click cancels
+- **Guide Me Wizard** — 6-step React portal overlay with snapshot/rollback pattern:
+  - Step 1: account setup + "Start Fresh?" (wipes all data after confirmation)
+  - Step 2: income sources with session item list
+  - Step 3: debt accounts with asset value field for Auto Loan / Mortgage; skippable
+  - Step 4: recurring bills with debt linking and inline category add
+  - Step 5: one-off expenses or income adjustments; skippable
+  - Step 6: review stat cards; "Start Over" rolls back wizard session data; "Complete" fires success toast
+- **WizardProgress** — 6-circle horizontal progress indicator; completed steps clickable; active circle spring scale-up animation
+- **Mobile Bottom Nav** — fixed bottom bar; FAB-style center button; 44px minimum touch targets
+- **Desktop Sidebar** — fixed left sidebar with nav, Guide Me, Import / Export / Reset / Sample Data actions
+- **EmptyState**, **ColorBalance**, **Toast** — shared presentational components
+- **Print stylesheet** — `@media print` hides nav/buttons/modals, resets to white, keeps color accents
+- **JSON round-trip verification** — `v4/roundtrip_test.mjs` confirms all keys and float values survive import → export (all 20 checks pass)
+
+### Changed
+- Architecture: single-file vanilla JS → React 19 component tree with Zustand store
+- Wizard: `window`-level DOM overlay → `createPortal` into `document.body`
+- `window.confirm` → `ConfirmDialog` component throughout
+- All state mutations via Zustand actions (no direct DOM manipulation)
+
+### Data Compatibility
+- Fully backward compatible with v3.x JSON exports
+- Debt entries gain `id` and `assetValue` on import (backward-compatible additions); v3.x ignores them on re-import
+- EXPORT_KEYS are identical to v3.x
+
+---
+
 ## [3.3.1] - 2026-03-07
 
 ### Fixed

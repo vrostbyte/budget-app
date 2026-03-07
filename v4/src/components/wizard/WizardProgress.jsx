@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 /**
  * WizardProgress — 6-step horizontal progress indicator.
@@ -21,13 +22,15 @@ export default function WizardProgress({ currentStep, totalSteps, stepLabels, on
           return (
             <div key={step} className="flex items-center flex-1">
               {/* Circle */}
-              <button
+              <motion.button
                 type="button"
                 onClick={() => completed && onStepClick(step)}
                 disabled={!completed}
                 title={stepLabels[i]}
+                animate={{ scale: active ? 1.15 : 1 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px]
-                            font-semibold shrink-0 transition-all duration-200
+                            font-semibold shrink-0 transition-colors duration-200
                             ${completed
                               ? 'bg-emerald-400 text-slate-900 cursor-pointer hover:bg-emerald-300'
                               : active
@@ -35,7 +38,7 @@ export default function WizardProgress({ currentStep, totalSteps, stepLabels, on
                                 : 'bg-slate-700 text-slate-500 cursor-default'}`}
               >
                 {completed ? <Check className="w-3.5 h-3.5" /> : step}
-              </button>
+              </motion.button>
 
               {/* Connector line — not after last */}
               {i < totalSteps - 1 && (
