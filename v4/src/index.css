@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Cyber-Neumorphism Dark Theme — Design Tokens
+   ============================================================ */
+@theme {
+  /* Background */
+  --color-bg-deep: #020617;      /* slate-950 — page background */
+  --color-bg-card: #0f172a;      /* slate-900 — card surfaces */
+  --color-bg-card-hover: #1e293b; /* slate-800 — card hover/active */
+
+  /* Accents */
+  --color-accent-primary: #22d3ee;   /* cyan-400 — primary actions, links */
+  --color-accent-positive: #34d399;  /* emerald-400 — positive cash flow */
+  --color-accent-negative: #fb7185;  /* rose-400 — negative balances, debt */
+  --color-accent-warning: #fbbf24;   /* amber-400 — caution states */
+  --color-accent-highlight: #e879f9; /* fuchsia-400 — secondary accent */
+
+  /* Text */
+  --color-text-primary: #f1f5f9;   /* slate-100 */
+  --color-text-secondary: #94a3b8; /* slate-400 */
+}
+
+/* ============================================================
+   Cyber-Neumorphism Utility Classes
+   ============================================================ */
+
+/* Raised card surface */
+.card-neu {
+  background-color: #0f172a;
+  border: 1px solid rgba(51, 65, 85, 0.5); /* slate-700/50 */
+  border-radius: 1rem; /* rounded-2xl */
+  box-shadow:
+    8px 8px 24px rgba(0, 0, 0, 0.4),
+    -4px -4px 12px rgba(30, 41, 59, 0.3);
+}
+
+/* Inset / pressed surface (for inputs) */
+.card-neu-inset {
+  background-color: rgba(2, 6, 23, 0.6); /* slate-950/60 */
+  border: 1px solid #1e293b; /* slate-800 */
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow:
+    inset 4px 4px 12px rgba(0, 0, 0, 0.3),
+    inset -2px -2px 8px rgba(30, 41, 59, 0.2);
+}
+
+/* Glow utilities */
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.15);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.15);
+}
+
+.glow-rose {
+  box-shadow: 0 0 20px rgba(251, 113, 133, 0.15);
+}
+
+/* ============================================================
+   Base Reset & Body
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #020617;
+  color: #f1f5f9;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
