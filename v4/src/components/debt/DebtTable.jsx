@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react';
-import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { ChevronUp, ChevronDown, ChevronsUpDown, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import useBudgetStore from '../../store/budgetStore.js';
 import { calculatePayoffMonths, formatPayoffMonths } from '../../utils/engine.js';
 import { formatCurrency } from '../../utils/formatters.js';
 import EmptyState from '../shared/EmptyState.jsx';
+import ConfirmDialog from '../shared/ConfirmDialog.jsx';
 import { Landmark } from 'lucide-react';
 
 const COLUMNS = [
@@ -25,8 +27,10 @@ function SortIcon({ col, sortCol, sortDir }) {
 
 export default function DebtTable() {
   const debtEntries = useBudgetStore(s => s.debtEntries);
+  const deleteDebt  = useBudgetStore(s => s.deleteDebt);
   const [sortCol, setSortCol] = useState('name');
   const [sortDir, setSortDir] = useState('asc');
+  const [confirm, setConfirm] = useState({ open: false, index: null });
 
   function handleSort(key) {
     if (sortCol === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
@@ -34,7 +38,7 @@ export default function DebtTable() {
   }
 
   const sorted = useMemo(() => {
-    return [...debtEntries].sort((a, b) => {
+    return [...debtEntries].map((d, i) => ({ ...d, _i: i })).sort((a, b) => {
       let av, bv;
       switch (sortCol) {
         case 'payoffMonths':
@@ -63,45 +67,66 @@ export default function DebtTable() {
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-700/50">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-slate-700/50 bg-slate-900/80">
-            {COLUMNS.map(col => (
-              <th
-                key={col.key}
-                onClick={() => handleSort(col.key)}
-                className={`px-4 py-2.5 text-xs text-slate-500 font-medium cursor-pointer
-                            hover:text-slate-300 transition-colors select-none
-                            ${col.numeric ? 'text-right' : 'text-left'}`}
-              >
-                <span className="inline-flex items-center gap-1">
-                  {!col.numeric && <SortIcon col={col.key} sortCol={sortCol} sortDir={sortDir} />}
-                  {col.label}
-                  {col.numeric && <SortIcon col={col.key} sortCol={sortCol} sortDir={sortDir} />}
-                </span>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map(debt => {
-            const months = calculatePayoffMonths(debt.balance, debt.apr, debt.actualPayment);
-            const payoffClass = months === Infinity ? 'text-rose-400' : months <= 12 ? 'text-emerald-400' : 'text-slate-300';
-            return (
-              <tr key={debt.id} className="border-b border-slate-800/50 hover:bg-slate-800/40 transition-colors">
-                <td className="px-4 py-2.5 text-slate-200 font-medium">{debt.name}</td>
-                <td className="px-4 py-2.5 text-slate-400 whitespace-nowrap">{debt.type}</td>
-                <td className="px-4 py-2.5 text-right text-rose-400 tabular-nums font-medium">{formatCurrency(debt.balance)}</td>
-                <td className="px-4 py-2.5 text-right text-slate-300 tabular-nums">{debt.apr.toFixed(2)}%</td>
-                <td className="px-4 py-2.5 text-right text-slate-400 tabular-nums">{formatCurrency(debt.minPayment)}</td>
-                <td className="px-4 py-2.5 text-right text-slate-300 tabular-nums font-medium">{formatCurrency(debt.actualPayment)}</td>
-                <td className={`px-4 py-2.5 text-right tabular-nums font-medium ${payoffClass}`}>{formatPayoffMonths(months)}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <ConfirmDialog
+        open={confirm.open}
+        message="Delete this debt account? Linked bills will be unlinked and their amounts frozen."
+        onConfirm={() => {
+          deleteDebt(confirm.index);
+          setConfirm({ open: false, index: null });
+          toast.success('Debt deleted');
+        }}
+        onCancel={() => setConfirm({ open: false, index: null })}
+      />
+      <div className="overflow-x-auto rounded-xl border border-slate-700/50">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-700/50 bg-slate-900/80">
+              {COLUMNS.map(col => (
+                <th
+                  key={col.key}
+                  onClick={() => handleSort(col.key)}
+                  className={`px-4 py-2.5 text-xs text-slate-500 font-medium cursor-pointer
+                              hover:text-slate-300 transition-colors select-none
+                              ${col.numeric ? 'text-right' : 'text-left'}`}
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {!col.numeric && <SortIcon col={col.key} sortCol={sortCol} sortDir={sortDir} />}
+                    {col.label}
+                    {col.numeric && <SortIcon col={col.key} sortCol={sortCol} sortDir={sortDir} />}
+                  </span>
+                </th>
+              ))}
+              <th className="px-4 py-2.5 text-xs text-slate-500 font-medium text-right"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map(debt => {
+              const months = calculatePayoffMonths(debt.balance, debt.apr, debt.actualPayment);
+              const payoffClass = months === Infinity ? 'text-rose-400' : months <= 12 ? 'text-emerald-400' : 'text-slate-300';
+              return (
+                <tr key={debt.id} className="border-b border-slate-800/50 hover:bg-slate-800/40 transition-colors">
+                  <td className="px-4 py-2.5 text-slate-200 font-medium">{debt.name}</td>
+                  <td className="px-4 py-2.5 text-slate-400 whitespace-nowrap">{debt.type}</td>
+                  <td className="px-4 py-2.5 text-right text-rose-400 tabular-nums font-medium">{formatCurrency(debt.balance)}</td>
+                  <td className="px-4 py-2.5 text-right text-slate-300 tabular-nums">{debt.apr.toFixed(2)}%</td>
+                  <td className="px-4 py-2.5 text-right text-slate-400 tabular-nums">{formatCurrency(debt.minPayment)}</td>
+                  <td className="px-4 py-2.5 text-right text-slate-300 tabular-nums font-medium">{formatCurrency(debt.actualPayment)}</td>
+                  <td className={`px-4 py-2.5 text-right tabular-nums font-medium ${payoffClass}`}>{formatPayoffMonths(months)}</td>
+                  <td className="px-4 py-2.5 text-right">
+                    <button
+                      onClick={() => setConfirm({ open: true, index: debt._i })}
+                      className="p-1.5 text-slate-600 hover:text-rose-400 transition-colors rounded-lg hover:bg-slate-800"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
